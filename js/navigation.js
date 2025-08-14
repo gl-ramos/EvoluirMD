@@ -175,8 +175,13 @@ function setupBlankEditorListeners() {
         blankEditorContent.removeEventListener('keydown', handleBlankEditorKeydown);
         
         // Adiciona novos listeners
-        blankEditorContent.addEventListener('input', window.handleEditorInput);
+        if (window.handleEditorInput) {
+            blankEditorContent.addEventListener('input', window.handleEditorInput);
+        }
         blankEditorContent.addEventListener('keydown', handleBlankEditorKeydown);
+        
+        // Marca que o listener foi adicionado para evitar duplicação
+        blankEditorContent.setAttribute('data-snippet-listener', 'true');
     }
 
     if (blankClearButton) {
@@ -691,6 +696,7 @@ window.updateHeaderForEditor = updateHeaderForEditor;
 window.updateSnippetCounter = updateSnippetCounter;
 window.updateTemplateCounter = updateTemplateCounter;
 window.hideAllStates = hideAllStates;
+window.renderQuickSnippets = renderQuickSnippets;
 
 // Exporta funções para uso em outros módulos
 export {
@@ -703,5 +709,6 @@ export {
     updateHeaderForEditor,
     updateSnippetCounter,
     updateTemplateCounter,
-    hideAllStates
+    hideAllStates,
+    renderQuickSnippets
 };

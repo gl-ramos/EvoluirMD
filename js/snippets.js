@@ -151,6 +151,11 @@ function handleSaveSnippet(e) {
     
     closeSnippetModal();
     renderSnippetsList();
+    
+    // Atualiza sidebar quick snippets
+    if (window.renderQuickSnippets) {
+        window.renderQuickSnippets();
+    }
 }
 
 /**
@@ -171,6 +176,10 @@ function deleteSnippet(key) {
     }
     
     renderSnippetsList();
+
+    if (window.renderQuickSnippets) {
+        window.renderQuickSnippets();
+    }
 }
 
 // ========================================

@@ -52,6 +52,11 @@ function loadTemplate(templateKey) {
         window.addKeyboardListenerToElement(editorContent);
     }
 
+    // Adiciona listener de input para snippets
+    if (window.handleEditorInput) {
+        editorContent.addEventListener('input', window.handleEditorInput);
+    }
+
     // Mostra estado do editor
     if (window.showEditorState) {
         window.showEditorState();
@@ -176,6 +181,12 @@ function setupEditorListeners() {
             selection.addRange(range);
         }
     });
+
+    // Adiciona listener de input para snippets se ainda não estiver presente
+    if (window.handleEditorInput && !editorContent.hasAttribute('data-snippet-listener')) {
+        editorContent.addEventListener('input', window.handleEditorInput);
+        editorContent.setAttribute('data-snippet-listener', 'true');
+    }
 
     // Event listeners para botões principais
     if (copyButton) {
