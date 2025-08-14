@@ -47,6 +47,11 @@ function loadTemplate(templateKey) {
     editorTitle.textContent = template.title;
     editorContent.innerHTML = contentWithPlaceholders;
 
+    // Adiciona listener de teclado ao editor se disponível
+    if (window.addKeyboardListenerToElement) {
+        window.addKeyboardListenerToElement(editorContent);
+    }
+
     // Mostra estado do editor
     if (window.showEditorState) {
         window.showEditorState();
