@@ -112,6 +112,10 @@ function loadDataFromStorage() {
             '/alta': {
                 description: 'Texto padrão para alta hospitalar.',
                 content: 'Paciente evoluiu com melhora clínica e laboratorial, recebendo alta hospitalar em bom estado geral, com orientações e prescrição entregues.'
+            },
+            '/exame': {
+                description: 'Template de exame físico com placeholders.',
+                content: 'Paciente {{nome_paciente}}, {{idade_paciente}} anos, apresenta-se em {{estado_geral}}. Sinais vitais: PA: {{pressao_arterial}}mmHg, FC: {{frequencia_cardiaca}}bpm, FR: {{frequencia_respiratoria}}irpm, Tax: {{temperatura}}°C. {{exame_detalhado}}'
             }
         };
         saveSnippetsToStorage();

@@ -306,6 +306,52 @@ function renderQuickSnippets() {
 }
 
 /**
+ * Foca no primeiro placeholder de um conjunto específico de elementos
+ * @param {DocumentFragment} insertedFragment - Fragmento inserido contendo placeholders
+ */
+function focusFirstNewPlaceholder(insertedFragment) {
+    // Se o fragmento foi inserido, precisamos buscar os placeholders no DOM
+    // Vamos procurar pelos placeholders mais recentemente inseridos
+    setTimeout(() => {
+        const editorContent = getActiveEditor();
+        if (!editorContent) return;
+        
+        // Busca todos os placeholders no editor
+        const allPlaceholders = editorContent.querySelectorAll('.placeholder');
+        
+        // Procura o primeiro placeholder que não tem as classes de estado
+        // (indicando que é um placeholder recém-inserido)
+        const newPlaceholder = Array.from(allPlaceholders).find(p => 
+            !p.classList.contains('active') && 
+            !p.classList.contains('placeholder-filled') &&
+            !p.hasAttribute('data-skipped')
+        );
+        
+        if (newPlaceholder) {
+            // Limpa qualquer seleção anterior
+            const currentActive = editorContent.querySelector('.placeholder.active');
+            if (currentActive) {
+                currentActive.classList.remove('active', 'initial-focus');
+            }
+            
+            // Ativa o novo placeholder
+            newPlaceholder.classList.add('active', 'initial-focus');
+            newPlaceholder.focus();
+            
+            // Seleciona todo o conteúdo do placeholder
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(newPlaceholder);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // Remove a animação após 2 segundos
+            setTimeout(() => newPlaceholder.classList.remove('initial-focus'), 2000);
+        }
+    }, 10);
+}
+
+/**
  * Insere um snippet diretamente no editor ativo
  */
 function insertSnippetDirectly(key) {
@@ -318,21 +364,44 @@ function insertSnippetDirectly(key) {
         activeEditor.focus();
         const selection = window.getSelection();
         
+        // Processa placeholders no conteúdo do snippet
+        const contentWithPlaceholders = window.processSnippetPlaceholders 
+            ? window.processSnippetPlaceholders(snippet.content) 
+            : snippet.content;
+        
         if (selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
             range.deleteContents();
-            const textNode = document.createTextNode(snippet.content);
-            range.insertNode(textNode);
             
-            // Position cursor after inserted content
-            range.setStartAfter(textNode);
-            range.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(range);
+            // Verifica se o conteúdo tem placeholders
+            if (contentWithPlaceholders.includes('<span class="placeholder"')) {
+                // Se tem placeholders, insere como HTML usando createContextualFragment para preservar ordem
+                const fragment = range.createContextualFragment(contentWithPlaceholders);
+                range.insertNode(fragment);
+                
+                // Posiciona o cursor após o conteúdo inserido
+                range.collapse(false);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                // Após inserir, foca no primeiro placeholder se existir
+                setTimeout(() => {
+                    focusFirstNewPlaceholder(fragment);
+                }, 50);
+            } else {
+                // Se não tem placeholders, insere como texto simples
+                const textNode = document.createTextNode(snippet.content);
+                range.insertNode(textNode);
+                
+                // Position cursor after inserted content
+                range.setStartAfter(textNode);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
         } else {
             // Create a new range at the end of the editor content
             const range = document.createRange();
-            const textNode = document.createTextNode(snippet.content);
             
             // If editor has content, add to end, otherwise add as first content
             if (activeEditor.childNodes.length > 0) {
@@ -343,13 +412,32 @@ function insertSnippetDirectly(key) {
                 range.collapse(true);
             }
             
-            range.insertNode(textNode);
-            
-            // Position cursor after inserted content
-            range.setStartAfter(textNode);
-            range.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(range);
+            // Verifica se o conteúdo tem placeholders
+            if (contentWithPlaceholders.includes('<span class="placeholder"')) {
+                // Se tem placeholders, insere como HTML usando createContextualFragment para preservar ordem
+                const fragment = range.createContextualFragment(contentWithPlaceholders);
+                range.insertNode(fragment);
+                
+                // Posiciona o cursor após o conteúdo inserido
+                range.collapse(false);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                // Após inserir, foca no primeiro placeholder se existir
+                setTimeout(() => {
+                    focusFirstNewPlaceholder(fragment);
+                }, 50);
+            } else {
+                // Se não tem placeholders, insere como texto simples
+                const textNode = document.createTextNode(snippet.content);
+                range.insertNode(textNode);
+                
+                // Position cursor after inserted content
+                range.setStartAfter(textNode);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
         }
     }
 }

@@ -243,9 +243,65 @@ function hideSnippetTooltip() {
 }
 
 /**
- * Insere um snippet no editor
- * @param {string} key - Chave do snippet a ser inserido
+ * Processa o conteúdo do snippet convertendo placeholders em elementos HTML editáveis
+ * @param {string} content - Conteúdo do snippet
+ * @returns {string} - Conteúdo com placeholders convertidos
  */
+function processSnippetPlaceholders(content) {
+    // Converte placeholders {{texto}} em elementos HTML editáveis
+    return content.replace(
+        /\{\{([^}]+)\}\}/g,
+        (match, p1) => {
+            return `<span class="placeholder" data-original-text="${match}">${p1.replace(/_/g, ' ')}</span>`;
+        }
+    );
+}
+
+/**
+ * Foca no primeiro placeholder de um conjunto específico de elementos
+ * @param {DocumentFragment} insertedFragment - Fragmento inserido contendo placeholders
+ */
+function focusFirstNewPlaceholder(insertedFragment) {
+    // Se o fragmento foi inserido, precisamos buscar os placeholders no DOM
+    // Vamos procurar pelos placeholders mais recentemente inseridos
+    setTimeout(() => {
+        const editorContent = document.getElementById('editor-content');
+        if (!editorContent) return;
+        
+        // Busca todos os placeholders no editor
+        const allPlaceholders = editorContent.querySelectorAll('.placeholder');
+        
+        // Procura o primeiro placeholder que não tem as classes de estado
+        // (indicando que é um placeholder recém-inserido)
+        const newPlaceholder = Array.from(allPlaceholders).find(p => 
+            !p.classList.contains('active') && 
+            !p.classList.contains('placeholder-filled') &&
+            !p.hasAttribute('data-skipped')
+        );
+        
+        if (newPlaceholder) {
+            // Limpa qualquer seleção anterior
+            const currentActive = editorContent.querySelector('.placeholder.active');
+            if (currentActive) {
+                currentActive.classList.remove('active', 'initial-focus');
+            }
+            
+            // Ativa o novo placeholder
+            newPlaceholder.classList.add('active', 'initial-focus');
+            newPlaceholder.focus();
+            
+            // Seleciona todo o conteúdo do placeholder
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(newPlaceholder);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // Remove a animação após 2 segundos
+            setTimeout(() => newPlaceholder.classList.remove('initial-focus'), 2000);
+        }
+    }, 10);
+}
 function insertSnippet(key) {
     if (!window.snippets || !window.snippets[key]) return;
     
@@ -272,21 +328,46 @@ function insertSnippet(key) {
         range.setEnd(node, selection.getRangeAt(0).startOffset);
         range.deleteContents();
         
-        const textNode = document.createTextNode(snippet.content);
-        range.insertNode(textNode);
+        // Processa placeholders no conteúdo do snippet
+        const contentWithPlaceholders = processSnippetPlaceholders(snippet.content);
         
-        // Posiciona o cursor após o snippet inserido
-        range.setStartAfter(textNode);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
+        // Verifica se o conteúdo tem placeholders
+        if (contentWithPlaceholders.includes('<span class="placeholder"')) {
+            // Se tem placeholders, insere como HTML usando createContextualFragment para preservar ordem
+            const fragment = range.createContextualFragment(contentWithPlaceholders);
+            range.insertNode(fragment);
+            
+            // Posiciona o cursor após o conteúdo inserido
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // Foca no primeiro placeholder dos elementos recém-inseridos
+            focusFirstNewPlaceholder(fragment);
+        } else {
+            // Se não tem placeholders, insere como texto simples
+            const textNode = document.createTextNode(snippet.content);
+            range.insertNode(textNode);
+            
+            // Posiciona o cursor após o snippet inserido
+            range.setStartAfter(textNode);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
         
     } catch (error) {
         console.error('Erro ao inserir snippet:', error);
         // Fallback: insere no final do editor se possível
         const editorContent = document.getElementById('editor-content');
         if (editorContent) {
-            editorContent.textContent += snippet.content;
+            const contentWithPlaceholders = processSnippetPlaceholders(snippet.content);
+            if (contentWithPlaceholders.includes('<span class="placeholder"')) {
+                editorContent.innerHTML += contentWithPlaceholders;
+                focusFirstNewPlaceholder();
+            } else {
+                editorContent.textContent += snippet.content;
+            }
         }
     } finally {
         hideSnippetTooltip();
@@ -376,6 +457,8 @@ window.hideSnippetTooltip = hideSnippetTooltip;
 window.insertSnippet = insertSnippet;
 window.handleEditorInput = handleEditorInput;
 window.setupSnippetsListeners = setupSnippetsListeners;
+window.processSnippetPlaceholders = processSnippetPlaceholders;
+window.focusFirstNewPlaceholder = focusFirstNewPlaceholder;
 
 // Exporta funções para uso em outros módulos
 export {
@@ -388,5 +471,7 @@ export {
     hideSnippetTooltip,
     insertSnippet,
     handleEditorInput,
-    setupSnippetsListeners
+    setupSnippetsListeners,
+    processSnippetPlaceholders,
+    focusFirstNewPlaceholder
 };
