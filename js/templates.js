@@ -214,31 +214,6 @@ function getTemplatePreview(content) {
 }
 
 /**
- * Formata a data do último uso
- * @param {number} timestamp - Timestamp do último uso
- * @returns {string} Data formatada
- */
-function formatLastUsed(timestamp) {
-    if (!timestamp) return null;
-    
-    const now = new Date();
-    const used = new Date(timestamp);
-    const diffMs = now - used;
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'hoje';
-    if (diffDays === 1) return 'ontem';
-    if (diffDays < 7) return `${diffDays} dias atrás`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} sem. atrás`;
-    
-    return used.toLocaleDateString('pt-BR', { 
-        day: '2-digit', 
-        month: '2-digit',
-        year: 'numeric' 
-    });
-}
-
-/**
  * Escapa HTML para prevenir XSS
  * @param {string} text - Texto para escapar
  * @returns {string} Texto escapado

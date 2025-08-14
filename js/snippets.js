@@ -242,28 +242,46 @@ function insertSnippet(key) {
     
     const snippet = window.snippets[key];
     const selection = window.getSelection();
+    
     if (!currentSnippetTrigger || !selection.rangeCount) {
         hideSnippetTooltip();
         return;
     }
     
-    // Remove o texto do trigger e insere o conteúdo do snippet
-    const { node, startOffset } = currentSnippetTrigger;
-    const range = document.createRange();
-    range.setStart(node, startOffset);
-    range.setEnd(node, selection.getRangeAt(0).startOffset);
-    range.deleteContents();
-    
-    const textNode = document.createTextNode(snippet.content);
-    range.insertNode(textNode);
-    
-    // Posiciona o cursor após o snippet inserido
-    range.setStartAfter(textNode);
-    range.collapse(true);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    
-    hideSnippetTooltip();
+    try {
+        // Remove o texto do trigger e insere o conteúdo do snippet
+        const { node, startOffset } = currentSnippetTrigger;
+        
+        // Valida se o node ainda existe no DOM
+        if (!node || !node.parentNode) {
+            hideSnippetTooltip();
+            return;
+        }
+        
+        const range = document.createRange();
+        range.setStart(node, startOffset);
+        range.setEnd(node, selection.getRangeAt(0).startOffset);
+        range.deleteContents();
+        
+        const textNode = document.createTextNode(snippet.content);
+        range.insertNode(textNode);
+        
+        // Posiciona o cursor após o snippet inserido
+        range.setStartAfter(textNode);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+    } catch (error) {
+        console.error('Erro ao inserir snippet:', error);
+        // Fallback: insere no final do editor se possível
+        const editorContent = document.getElementById('editor-content') || document.getElementById('blank-editor-content');
+        if (editorContent) {
+            editorContent.textContent += snippet.content;
+        }
+    } finally {
+        hideSnippetTooltip();
+    }
 }
 
 /**
@@ -348,7 +366,7 @@ window.showSnippetTooltip = showSnippetTooltip;
 window.hideSnippetTooltip = hideSnippetTooltip;
 window.insertSnippet = insertSnippet;
 window.handleEditorInput = handleEditorInput;
-window.setupSnippetsListeners = setupSnippetsListeners
+window.setupSnippetsListeners = setupSnippetsListeners;
 
 // Exporta funções para uso em outros módulos
 export {

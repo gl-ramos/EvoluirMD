@@ -247,7 +247,7 @@ function renderCategoriesManagementList() {
             <div class="flex items-center space-x-3">
                 <div class="w-4 h-4 rounded-full border border-gray-600" style="background-color: ${category.color}"></div>
                 <div>
-                    <h3 class="font-bold text-lg text-gray-200">${escapeHtml(category.name)}</h3>
+                    <h3 class="font-bold text-lg text-gray-200">${(() => { const div = document.createElement('div'); div.textContent = category.name; return div.innerHTML; })()}</h3>
                     <p class="text-sm text-gray-400">
                         ${usageCount} template${usageCount !== 1 ? 's' : ''}
                         ${category.isDefault ? ' • Categoria padrão' : ''}
@@ -395,21 +395,6 @@ function handleSaveCategory(e) {
     } catch (error) {
         alert('Erro ao salvar categoria: ' + error.message);
     }
-}
-
-// ========================================
-// FUNÇÕES AUXILIARES DE UI
-// ========================================
-
-/**
- * Escapa HTML para prevenir XSS
- * @param {string} text - Texto para escapar
- * @returns {string} Texto escapado
- */
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 // ========================================

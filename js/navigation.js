@@ -614,20 +614,6 @@ function setupAllListeners() {
 // ========================================
 
 /**
- * Verifica se um link está ativo
- * @param {string} linkId - ID do link a ser verificado
- * @returns {boolean} - True se o link estiver ativo
- */
-function isLinkActive(linkId) {
-    const link = document.getElementById(linkId);
-    if (!link) return false;
-    
-    return link.classList.contains('active') || 
-           link.classList.contains('bg-gray-700') ||
-           link.classList.contains('bg-blue-600');
-}
-
-/**
  * Ativa um link de navegação
  * @param {string} linkId - ID do link a ser ativado
  */
@@ -691,64 +677,14 @@ function navigateToSection(section) {
 }
 
 // ========================================
-// FUNÇÕES DE HISTÓRICO DE NAVEGAÇÃO
-// ========================================
-
-/**
- * Adiciona uma entrada ao histórico de navegação
- * @param {string} section - Seção navegada
- * @param {string} templateId - ID do template (se aplicável)
- */
-function addToNavigationHistory(section, templateId = null) {
-    const historyEntry = {
-        section,
-        templateId,
-        timestamp: Date.now()
-    };
-    
-    // Obtém histórico existente
-    let navigationHistory = JSON.parse(localStorage.getItem('evoluirMD_navigation_history') || '[]');
-    
-    // Adiciona nova entrada
-    navigationHistory.push(historyEntry);
-    
-    // Mantém apenas as últimas 10 entradas
-    if (navigationHistory.length > 10) {
-        navigationHistory = navigationHistory.slice(-10);
-    }
-    
-    // Salva no localStorage
-    localStorage.setItem('evoluirMD_navigation_history', JSON.stringify(navigationHistory));
-}
-
-/**
- * Obtém o histórico de navegação
- * @returns {Array} - Array com histórico de navegação
- */
-function getNavigationHistory() {
-    return JSON.parse(localStorage.getItem('evoluirMD_navigation_history') || '[]');
-}
-
-/**
- * Limpa o histórico de navegação
- */
-function clearNavigationHistory() {
-    localStorage.removeItem('evoluirMD_navigation_history');
-}
-
-// ========================================
 // EXPOSIÇÃO DE FUNÇÕES
 // ========================================
 
 // Funções que precisam ser acessíveis globalmente
 window.setupNavigationListeners = setupNavigationListeners;
 window.setupAllListeners = setupAllListeners;
-window.isLinkActive = isLinkActive;
 window.activateLink = activateLink;
 window.navigateToSection = navigateToSection;
-window.addToNavigationHistory = addToNavigationHistory;
-window.getNavigationHistory = getNavigationHistory;
-window.clearNavigationHistory = clearNavigationHistory;
 window.showBlankEditor = showBlankEditor;
 window.updateModeIndicator = updateModeIndicator;
 window.updateHeaderForEditor = updateHeaderForEditor;
@@ -760,12 +696,8 @@ window.hideAllStates = hideAllStates;
 export {
     setupNavigationListeners,
     setupAllListeners,
-    isLinkActive,
     activateLink,
     navigateToSection,
-    addToNavigationHistory,
-    getNavigationHistory,
-    clearNavigationHistory,
     showBlankEditor,
     updateModeIndicator,
     updateHeaderForEditor,

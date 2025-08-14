@@ -12,6 +12,78 @@
 // ========================================
 
 /**
+ * Cria categorias médicas padrão
+ * @returns {Object} Objeto com categorias padrão
+ */
+function createDefaultCategories() {
+    const defaultCategories = [
+        { id: 'geral', name: 'Geral', color: '#6B7280' },
+        { id: 'alta', name: 'Alta Hospitalar', color: '#10B981' },
+        { id: 'pneumologia', name: 'Pneumologia', color: '#3B82F6' },
+        { id: 'cardiologia', name: 'Cardiologia', color: '#EF4444' },
+        { id: 'neurologia', name: 'Neurologia', color: '#8B5CF6' },
+        { id: 'gastroenterologia', name: 'Gastroenterologia', color: '#F59E0B' },
+        { id: 'endocrinologia', name: 'Endocrinologia', color: '#06B6D4' },
+        { id: 'nefrologia', name: 'Nefrologia', color: '#84CC16' },
+        { id: 'infectologia', name: 'Infectologia', color: '#F97316' },
+        { id: 'hematologia', name: 'Hematologia', color: '#EC4899' },
+        { id: 'oncologia', name: 'Oncologia', color: '#64748B' },
+        { id: 'psiquiatria', name: 'Psiquiatria', color: '#A855F7' },
+        { id: 'dermatologia', name: 'Dermatologia', color: '#22C55E' },
+        { id: 'ortopedia', name: 'Ortopedia', color: '#8B7355' },
+        { id: 'cirurgia', name: 'Cirurgia', color: '#DC2626' },
+        { id: 'pediatria', name: 'Pediatria', color: '#FF69B4' },
+        { id: 'ginecologia', name: 'Ginecologia', color: '#FFB6C1' },
+        { id: 'pronto-socorro', name: 'Pronto Socorro', color: '#FF4500' },
+        { id: 'uti', name: 'UTI', color: '#800080' },
+        { id: 'procedimentos', name: 'Procedimentos', color: '#20B2AA' }
+    ];
+    
+    const categoriesObj = {};
+    const now = Date.now();
+    
+    defaultCategories.forEach(cat => {
+        categoriesObj[cat.id] = {
+            ...cat,
+            isDefault: true,
+            createdAt: now
+        };
+    });
+    
+    return categoriesObj;
+}
+
+/**
+ * Cria mapeamento de nomes antigos para IDs novos
+ * @returns {Object} Mapeamento de categorias
+ */
+function createCategoryMapping() {
+    return {
+        'Geral': 'geral',
+        'Alta': 'alta',
+        'Alta Hospitalar': 'alta',
+        'Pneumologia': 'pneumologia',
+        'Cardiologia': 'cardiologia',
+        'Neurologia': 'neurologia',
+        'Gastroenterologia': 'gastroenterologia',
+        'Endocrinologia': 'endocrinologia',
+        'Nefrologia': 'nefrologia',
+        'Infectologia': 'infectologia',
+        'Hematologia': 'hematologia',
+        'Oncologia': 'oncologia',
+        'Psiquiatria': 'psiquiatria',
+        'Dermatologia': 'dermatologia',
+        'Ortopedia': 'ortopedia',
+        'Cirurgia': 'cirurgia',
+        'Pediatria': 'pediatria',
+        'Ginecologia': 'ginecologia',
+        'Pronto Socorro': 'pronto-socorro',
+        'UTI': 'uti',
+        'Procedimentos': 'procedimentos'
+    };
+}
+
+/**
  * Carrega dados salvos no localStorage
  * Inicializa templates, snippets e categorias padrão se não existirem
  */
@@ -22,28 +94,7 @@ function loadDataFromStorage() {
         window.categories = JSON.parse(storedCategories);
     } else {
         // Categorias padrão para novos usuários (baseadas nas categorias médicas)
-        window.categories = {
-            'geral': { id: 'geral', name: 'Geral', color: '#6B7280', isDefault: true, createdAt: Date.now() },
-            'alta': { id: 'alta', name: 'Alta Hospitalar', color: '#10B981', isDefault: true, createdAt: Date.now() },
-            'pneumologia': { id: 'pneumologia', name: 'Pneumologia', color: '#3B82F6', isDefault: true, createdAt: Date.now() },
-            'cardiologia': { id: 'cardiologia', name: 'Cardiologia', color: '#EF4444', isDefault: true, createdAt: Date.now() },
-            'neurologia': { id: 'neurologia', name: 'Neurologia', color: '#8B5CF6', isDefault: true, createdAt: Date.now() },
-            'gastroenterologia': { id: 'gastroenterologia', name: 'Gastroenterologia', color: '#F59E0B', isDefault: true, createdAt: Date.now() },
-            'endocrinologia': { id: 'endocrinologia', name: 'Endocrinologia', color: '#06B6D4', isDefault: true, createdAt: Date.now() },
-            'nefrologia': { id: 'nefrologia', name: 'Nefrologia', color: '#84CC16', isDefault: true, createdAt: Date.now() },
-            'infectologia': { id: 'infectologia', name: 'Infectologia', color: '#F97316', isDefault: true, createdAt: Date.now() },
-            'hematologia': { id: 'hematologia', name: 'Hematologia', color: '#EC4899', isDefault: true, createdAt: Date.now() },
-            'oncologia': { id: 'oncologia', name: 'Oncologia', color: '#64748B', isDefault: true, createdAt: Date.now() },
-            'psiquiatria': { id: 'psiquiatria', name: 'Psiquiatria', color: '#A855F7', isDefault: true, createdAt: Date.now() },
-            'dermatologia': { id: 'dermatologia', name: 'Dermatologia', color: '#22C55E', isDefault: true, createdAt: Date.now() },
-            'ortopedia': { id: 'ortopedia', name: 'Ortopedia', color: '#8B7355', isDefault: true, createdAt: Date.now() },
-            'cirurgia': { id: 'cirurgia', name: 'Cirurgia', color: '#DC2626', isDefault: true, createdAt: Date.now() },
-            'pediatria': { id: 'pediatria', name: 'Pediatria', color: '#FF69B4', isDefault: true, createdAt: Date.now() },
-            'ginecologia': { id: 'ginecologia', name: 'Ginecologia', color: '#FFB6C1', isDefault: true, createdAt: Date.now() },
-            'pronto-socorro': { id: 'pronto-socorro', name: 'Pronto Socorro', color: '#FF4500', isDefault: true, createdAt: Date.now() },
-            'uti': { id: 'uti', name: 'UTI', color: '#800080', isDefault: true, createdAt: Date.now() },
-            'procedimentos': { id: 'procedimentos', name: 'Procedimentos', color: '#20B2AA', isDefault: true, createdAt: Date.now() }
-        };
+        window.categories = createDefaultCategories();
         saveCategoriesToStorage();
     }
 
@@ -162,30 +213,7 @@ function migrateTemplatesFormat() {
         // Migra categoria do formato antigo (string) para novo formato (categoryId)
         if (template.hasOwnProperty('category') && !template.hasOwnProperty('categoryId')) {
             // Mapeia nomes antigos para IDs novos
-            const categoryMap = {
-                'Geral': 'geral',
-                'Alta': 'alta',
-                'Alta Hospitalar': 'alta',
-                'Pneumologia': 'pneumologia',
-                'Cardiologia': 'cardiologia',
-                'Neurologia': 'neurologia',
-                'Gastroenterologia': 'gastroenterologia',
-                'Endocrinologia': 'endocrinologia',
-                'Nefrologia': 'nefrologia',
-                'Infectologia': 'infectologia',
-                'Hematologia': 'hematologia',
-                'Oncologia': 'oncologia',
-                'Psiquiatria': 'psiquiatria',
-                'Dermatologia': 'dermatologia',
-                'Ortopedia': 'ortopedia',
-                'Cirurgia': 'cirurgia',
-                'Pediatria': 'pediatria',
-                'Ginecologia': 'ginecologia',
-                'Pronto Socorro': 'pronto-socorro',
-                'UTI': 'uti',
-                'Procedimentos': 'procedimentos'
-            };
-            
+            const categoryMap = createCategoryMapping();
             template.categoryId = categoryMap[template.category] || 'geral';
             delete template.category;
             needsSave = true;
@@ -317,6 +345,11 @@ function importData(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         
+        const cleanup = () => {
+            reader.onload = null;
+            reader.onerror = null;
+        };
+        
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
@@ -336,16 +369,20 @@ function importData(file) {
                     migrateTemplatesFormat();
                     migrateCategoriesFormat();
                     
+                    cleanup();
                     resolve('Dados importados com sucesso!');
                 } else {
+                    cleanup();
                     reject('Formato de arquivo inválido');
                 }
             } catch (error) {
+                cleanup();
                 reject('Erro ao processar arquivo: ' + error.message);
             }
         };
         
         reader.onerror = function() {
+            cleanup();
             reject('Erro ao ler arquivo');
         };
         

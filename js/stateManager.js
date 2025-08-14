@@ -24,15 +24,23 @@ const categoriesState = document.getElementById('categories-state');
 // ========================================
 
 /**
+ * Esconde todos os estados da interface
+ */
+function hideAllStates() {
+    const states = [editorState, blankEditorState, snippetsState, templatesState, categoriesState, defaultState];
+    states.forEach(state => {
+        if (state) {
+            state.classList.add('hidden');
+        }
+    });
+}
+
+/**
  * Mostra o estado padrão (dashboard)
  * Oculta todos os outros estados e renderiza o dashboard
  */
 function showDefaultState() {
-    editorState.classList.add('hidden');
-    if (blankEditorState) blankEditorState.classList.add('hidden');
-    snippetsState.classList.add('hidden');
-    templatesState.classList.add('hidden');
-    categoriesState.classList.add('hidden');
+    hideAllStates();
     defaultState.classList.remove('hidden');
     
     // Limpa estado do editor
@@ -64,11 +72,7 @@ function showDefaultState() {
  * Oculta todos os outros estados
  */
 function showEditorState() {
-    defaultState.classList.add('hidden');
-    if (blankEditorState) blankEditorState.classList.add('hidden');
-    snippetsState.classList.add('hidden');
-    templatesState.classList.add('hidden');
-    categoriesState.classList.add('hidden');
+    hideAllStates();
     editorState.classList.remove('hidden');
     
     // Atualiza header e indicadores
@@ -85,11 +89,7 @@ function showEditorState() {
  * Oculta todos os outros estados e renderiza a lista
  */
 function showSnippetsState() {
-    defaultState.classList.add('hidden');
-    editorState.classList.add('hidden');
-    if (blankEditorState) blankEditorState.classList.add('hidden');
-    templatesState.classList.add('hidden');
-    categoriesState.classList.add('hidden');
+    hideAllStates();
     snippetsState.classList.remove('hidden');
     
     // Atualiza header e indicadores
@@ -111,11 +111,7 @@ function showSnippetsState() {
  * Oculta todos os outros estados e renderiza a lista
  */
 function showTemplatesState() {
-    defaultState.classList.add('hidden');
-    editorState.classList.add('hidden');
-    if (blankEditorState) blankEditorState.classList.add('hidden');
-    snippetsState.classList.add('hidden');
-    categoriesState.classList.add('hidden');
+    hideAllStates();
     templatesState.classList.remove('hidden');
     
     // Atualiza header e indicadores
@@ -137,11 +133,7 @@ function showTemplatesState() {
  * Oculta todos os outros estados e renderiza a lista
  */
 function showCategoriesState() {
-    defaultState.classList.add('hidden');
-    editorState.classList.add('hidden');
-    if (blankEditorState) blankEditorState.classList.add('hidden');
-    snippetsState.classList.add('hidden');
-    templatesState.classList.add('hidden');
+    hideAllStates();
     categoriesState.classList.remove('hidden');
     
     // Atualiza header e indicadores
@@ -163,6 +155,7 @@ function showCategoriesState() {
 // ========================================
 
 // Funções que precisam ser acessíveis globalmente
+window.hideAllStates = hideAllStates;
 window.showDefaultState = showDefaultState;
 window.showEditorState = showEditorState;
 window.showSnippetsState = showSnippetsState;
@@ -171,6 +164,7 @@ window.showCategoriesState = showCategoriesState;
 
 // Exporta funções para uso em outros módulos
 export {
+    hideAllStates,
     showDefaultState,
     showEditorState,
     showSnippetsState,
