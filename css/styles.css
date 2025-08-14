@@ -116,13 +116,11 @@ body {
 }
 
 /* Remove outline padrão do editor */
-#editor-content:focus,
-#blank-editor-content:focus {
+#editor-content:focus {
     outline: none;
 }
 
 /* Remove any default borders from contenteditable elements */
-#blank-editor-content,
 #editor-content {
     border: none !important;
     outline: none !important;

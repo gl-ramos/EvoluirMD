@@ -132,28 +132,26 @@ function setupNavigationListeners() {
     if (saveAsTemplate) {
         saveAsTemplate.addEventListener('click', (e) => {
             e.preventDefault();
-            saveBlankEditorAsTemplate();
+            if (window.saveBlankEditorAsTemplate) {
+                window.saveBlankEditorAsTemplate();
+            }
         });
     }
 }
 
 /**
- * Mostra o editor em branco
+ * Mostra o editor em branco usando o editor unificado
  */
 function showBlankEditor() {
     hideAllStates();
-    const blankEditorState = document.getElementById('blank-editor-state');
-    const blankEditorContent = document.getElementById('blank-editor-content');
+    const editorState = document.getElementById('editor-state');
     
-    if (blankEditorState) {
-        blankEditorState.classList.remove('hidden');
+    if (editorState) {
+        editorState.classList.remove('hidden');
         
-        // Foca no editor
-        if (blankEditorContent) {
-            setTimeout(() => {
-                blankEditorContent.focus();
-                setupBlankEditorListeners();
-            }, 100);
+        // Carrega o editor em modo branco
+        if (window.loadBlankEditor) {
+            window.loadBlankEditor();
         }
     }
 
@@ -162,117 +160,22 @@ function showBlankEditor() {
 }
 
 /**
- * Configura event listeners específicos do editor em branco
+ * Mostra o estado do editor (para templates)
  */
-function setupBlankEditorListeners() {
-    const blankEditorContent = document.getElementById('blank-editor-content');
-    const blankClearButton = document.getElementById('blank-clear-button');
-    const blankCopyButton = document.getElementById('blank-copy-button');
-
-    if (blankEditorContent) {
-        // Remove listeners anteriores para evitar duplicação
-        blankEditorContent.removeEventListener('input', window.handleEditorInput);
-        blankEditorContent.removeEventListener('keydown', handleBlankEditorKeydown);
-        
-        // Adiciona novos listeners
-        if (window.handleEditorInput) {
-            blankEditorContent.addEventListener('input', window.handleEditorInput);
-        }
-        blankEditorContent.addEventListener('keydown', handleBlankEditorKeydown);
-        
-        // Marca que o listener foi adicionado para evitar duplicação
-        blankEditorContent.setAttribute('data-snippet-listener', 'true');
+function showEditorState() {
+    hideAllStates();
+    const editorState = document.getElementById('editor-state');
+    
+    if (editorState) {
+        editorState.classList.remove('hidden');
     }
 
-    if (blankClearButton) {
-        blankClearButton.addEventListener('click', () => {
-            if (blankEditorContent) {
-                blankEditorContent.innerHTML = '';
-                blankEditorContent.focus();
-            }
-        });
-    }
-
-    if (blankCopyButton) {
-        blankCopyButton.addEventListener('click', () => {
-            if (blankEditorContent) {
-                copyToClipboard(blankEditorContent.textContent);
-                
-                // Feedback visual
-                const buttonText = document.getElementById('blank-copy-button-text');
-                if (buttonText) {
-                    const originalText = buttonText.textContent;
-                    buttonText.textContent = '✅ COPIADO!';
-                    setTimeout(() => {
-                        buttonText.textContent = originalText;
-                    }, 2000);
-                }
-            }
-        });
-    }
+    updateModeIndicator('template', 'Editor de Template');
+    updateHeaderForEditor(true);
 }
 
 /**
- * Manipula teclas especiais no editor em branco
- */
-function handleBlankEditorKeydown(e) {
-    // Ctrl/Cmd + S para salvar como template
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        saveBlankEditorAsTemplate();
-    }
-}
-
-/**
- * Salva o conteúdo do editor em branco como template
- */
-function saveBlankEditorAsTemplate() {
-    const blankEditorContent = document.getElementById('blank-editor-content');
-    if (!blankEditorContent || !blankEditorContent.textContent.trim()) {
-        alert('Não é possível salvar um template vazio.');
-        return;
-    }
-
-    const content = blankEditorContent.textContent.trim();
-    const title = prompt('Digite um título para o template:');
-    
-    if (!title || !title.trim()) {
-        return;
-    }
-
-    // Cria novo template
-    const key = `template_${Date.now()}`;
-    const now = Date.now();
-    
-    if (!window.templates) {
-        window.templates = {};
-    }
-    
-    window.templates[key] = {
-        title: title.trim(),
-        content: content,
-        lastUsed: null,
-        usageCount: 0,
-        isFavorite: false,
-        categoryId: 'geral',
-        createdAt: now
-    };
-
-    // Salva no localStorage
-    if (window.saveTemplatesToStorage) {
-        window.saveTemplatesToStorage();
-    }
-
-    // Atualiza UI
-    if (window.renderSidebarTemplates) {
-        window.renderSidebarTemplates();
-    }
-
-    alert(`Template "${title}" salvo com sucesso!`);
-}
-
-/**
- * Toggle do dropdown de novo documento
+ * Renderiza templates rápidos no dropdown
  */
 function toggleDropdown() {
     if (newDocumentDropdown) {
@@ -455,13 +358,11 @@ function insertSnippetDirectly(key) {
  * Retorna o editor ativo atual
  */
 function getActiveEditor() {
-    const blankEditor = document.getElementById('blank-editor-content');
-    const templateEditor = document.getElementById('editor-content');
+    const editorContent = document.getElementById('editor-content');
+    const editorState = document.getElementById('editor-state');
 
-    if (blankEditor && !blankEditor.closest('#blank-editor-state').classList.contains('hidden')) {
-        return blankEditor;
-    } else if (templateEditor && !templateEditor.closest('#editor-state').classList.contains('hidden')) {
-        return templateEditor;
+    if (editorContent && editorState && !editorState.classList.contains('hidden')) {
+        return editorContent;
     }
     
     return null;
@@ -561,7 +462,7 @@ function updateTemplateCounter() {
  * Esconde todos os estados
  */
 function hideAllStates() {
-    const states = ['default-state', 'editor-state', 'blank-editor-state', 'snippets-state', 'templates-state', 'categories-state'];
+    const states = ['default-state', 'editor-state', 'snippets-state', 'templates-state', 'categories-state'];
     states.forEach(stateId => {
         const element = document.getElementById(stateId);
         if (element) {

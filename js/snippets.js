@@ -284,7 +284,7 @@ function insertSnippet(key) {
     } catch (error) {
         console.error('Erro ao inserir snippet:', error);
         // Fallback: insere no final do editor se possível
-        const editorContent = document.getElementById('editor-content') || document.getElementById('blank-editor-content');
+        const editorContent = document.getElementById('editor-content');
         if (editorContent) {
             editorContent.textContent += snippet.content;
         }

@@ -14,7 +14,6 @@
 // Estados da interface
 const defaultState = document.getElementById('default-state');
 const editorState = document.getElementById('editor-state');
-const blankEditorState = document.getElementById('blank-editor-state');
 const snippetsState = document.getElementById('snippets-state');
 const templatesState = document.getElementById('templates-state');
 const categoriesState = document.getElementById('categories-state');
@@ -27,7 +26,7 @@ const categoriesState = document.getElementById('categories-state');
  * Esconde todos os estados da interface
  */
 function hideAllStates() {
-    const states = [editorState, blankEditorState, snippetsState, templatesState, categoriesState, defaultState];
+    const states = [editorState, snippetsState, templatesState, categoriesState, defaultState];
     states.forEach(state => {
         if (state) {
             state.classList.add('hidden');

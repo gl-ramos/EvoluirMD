@@ -38,12 +38,9 @@ function handleKeyboardEvents(e) {
         
         // Verifica se estamos dentro de um editor ou se há placeholders disponíveis
         const editorContent = document.getElementById('editor-content');
-        const blankEditorContent = document.getElementById('blank-editor-content');
         const activeEditor = editorContent && !editorContent.closest('#editor-state').classList.contains('hidden') 
             ? editorContent 
-            : blankEditorContent && !blankEditorContent.closest('#blank-editor-state').classList.contains('hidden') 
-                ? blankEditorContent 
-                : null;
+            : null;
         
         if (activeEditor) {
             const placeholders = activeEditor.querySelectorAll('.placeholder:not([data-skipped="true"])');
@@ -408,12 +405,9 @@ function findNearestPlaceholder(cursorPos, placeholdersWithPos, direction) {
 function handleTabNavigation(e) {
     // Encontra o editor ativo
     const editorContent = document.getElementById('editor-content');
-    const blankEditorContent = document.getElementById('blank-editor-content');
     const activeEditor = editorContent && !editorContent.closest('#editor-state').classList.contains('hidden') 
         ? editorContent 
-        : blankEditorContent && !blankEditorContent.closest('#blank-editor-state').classList.contains('hidden') 
-            ? blankEditorContent 
-            : editorContent; // fallback
+        : editorContent; // fallback
     
     if (!activeEditor) {
         return;
@@ -519,14 +513,9 @@ function setupKeyboardListeners() {
     
     // Event listeners específicos para elementos editáveis
     const editorContent = document.getElementById('editor-content');
-    const blankEditorContent = document.getElementById('blank-editor-content');
     
     if (editorContent) {
         editorContent.addEventListener('keydown', handleKeyboardEvents);
-    }
-    
-    if (blankEditorContent) {
-        blankEditorContent.addEventListener('keydown', handleKeyboardEvents);
     }
     
     // Função para configurar listeners em editors que podem ser criados dinamicamente
