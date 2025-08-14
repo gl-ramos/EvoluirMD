@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EvoluirMD - Edição Local</title>
+
+    <!-- Tailwind CSS -->
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Estilos customizados para complementar o Tailwind */
+
+        body {
+
+            font-family: 'Inter', sans-serif;
+
+            background-color: #1A1A1A;
+
+            color: #E5E7EB;
+            /* cinza claro */
+
+        }
+
+
+
+        /* Estilo para o placeholder no editor */
+
+        .placeholder {
+
+            background-color: rgba(59, 130, 246, 0.2);
+
+            color: #93C5FD;
+
+            padding: 2px 6px;
+
+            border-radius: 4px;
+
+            cursor: text;
+
+            transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+
+        }
+
+
+
+        .placeholder-filled {
+
+            background-color: transparent;
+
+            color: inherit;
+
+            padding: 2px 0;
+
+        }
+
+
+
+        .placeholder.active {
+
+            background-color: rgba(59, 130, 246, 0.3);
+
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+
+            outline: none;
+
+            color: #93C5FD;
+
+        }
+
+
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.8);
+            }
+
+        }
+
+
+
+        .placeholder.initial-focus {
+
+            animation: pulse 2s infinite;
+
+        }
+
+        #editor-content:focus {
+
+            outline: none;
+
+        }
+
+
+
+        .main-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .main-content::-webkit-scrollbar-track {
+            background: #1A1A1A;
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+
+            background-color: #374151;
+
+            border-radius: 20px;
+
+            border: 3px solid #1A1A1A;
+
+        }
+
+        #snippet-tooltip {
+            min-width: 250px;
+        }
+
+        .snippet-item {
+
+            display: block;
+
+            padding: 8px 12px;
+
+            border-radius: 4px;
+
+            cursor: pointer;
+
+            transition: background-color 0.2s ease;
+
+        }
+
+        .snippet-item:hover,
+        .snippet-item.active {
+            background-color: #3B82F6;
+        }
+
+        .snippet-key {
+            font-weight: 600;
+            color: #E5E7EB;
+        }
+
+        .snippet-desc {
+            font-size: 0.8rem;
+            color: #9CA3AF;
+        }
+
+        .snippet-item:hover .snippet-desc,
+        .snippet-item.active .snippet-desc {
+            color: #E5E7EB;
+        }
+
+
+
+        /* Estilos para o Modal */
+
+        .modal-overlay {
+
+            background-color: rgba(0, 0, 0, 0.7);
+
+        }
+    </style>
+
+</head>
+
+<body class="flex h-screen overflow-hidden">
+
+
+
+    <!-- 1. Barra Lateral Esquerda (Painel de Produtividade) -->
+
+    <aside class="w-72 bg-[#1F1F1F] flex flex-col flex-shrink-0 border-r border-gray-700/50 p-4">
+
+        <!-- Logo -->
+
+        <div class="flex items-center space-x-2 mb-6 cursor-pointer" onclick="showDefaultState()">
+
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#3B82F6]" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 4v5l4-2.5L12 10V4l-4 2.5L4 4zm0 11v5l4-2.5L12 21v-6l-4 2.5L4 15zm8-5.5l4 2.5 4-2.5-4-2.5-4 2.5z" />
+
+            </svg>
+
+            <h1 class="text-xl font-bold text-gray-200">EvoluirMD</h1>
+
+        </div>
+
+
+
+        <!-- Seção Área de Trabalho -->
+
+        <div class="flex-grow overflow-y-auto">
+
+            <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Templates</h2>
+
+            <nav id="template-list-sidebar" class="space-y-1 mb-4">
+
+                <!-- Lista de templates será renderizada aqui -->
+
+            </nav>
+
+            <a href="#" id="manage-templates-link"
+                class="flex items-center px-2 py-2 text-sm font-medium rounded-md hover:bg-gray-700/50 transition">
+
+                <span class="mr-3">📄</span> Meus Templates
+
+            </a>
+
+            <a href="#" id="show-snippets-link"
+                class="flex items-center px-2 py-2 text-sm font-medium rounded-md hover:bg-gray-700/50 transition">
+
+                <span class="mr-3">&lt;/&gt;</span> Meus Snippets
+
+            </a>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- Conteúdo Principal -->
+
+    <div class="flex-1 flex flex-col">
+
+        <!-- 2. Barra Superior (Header) -->
+
+        <header class="h-16 bg-[#1F1F1F] border-b border-gray-700/50 flex items-center justify-end px-6 flex-shrink-0">
+
+            <!-- Espaço vazio para manter o layout -->
+
+        </header>
+
+
+
+        <!-- 3. Área de Conteúdo Principal -->
+
+        <main id="main-content-area" class="flex-1 overflow-y-auto p-6 md:p-10 relative">
+
+            <!-- Estado Padrão (Boas-vindas) -->
+
+            <div id="default-state">
+
+                <h1 class="text-3xl font-bold text-gray-100 mb-2">Bem-vindo ao EvoluirMD</h1>
+
+                <p class="text-lg text-gray-400 mb-8">Selecione um template na barra lateral para começar.</p>
+
+            </div>
+
+
+
+            <!-- Estado do Editor -->
+
+            <div id="editor-state" class="hidden">
+
+                <h1 id="editor-title" class="text-2xl md:text-3xl font-bold text-gray-100 mb-6"></h1>
+
+                <div id="editor-content" class="text-lg leading-relaxed text-gray-300 max-w-none"
+                    style="white-space: pre-wrap; min-height: 400px;" contenteditable="true"></div>
+
+                <div class="fixed bottom-8 right-8 flex items-center space-x-4">
+
+                    <button id="clear-button"
+                        class="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transition duration-200 flex items-center">Limpar</button>
+
+                    <button id="copy-button"
+                        class="bg-[#3B82F6] hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-200 flex items-center w-48 justify-center"><span
+                            id="copy-button-text">📋 COPIAR NOTA</span></button>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Estado de Gerenciamento de Snippets -->
+
+            <div id="snippets-state" class="hidden">
+
+                <div class="flex justify-between items-center mb-6">
+
+                    <h1 class="text-3xl font-bold text-gray-100">Meus Snippets</h1>
+
+                    <button id="create-new-snippet-btn"
+                        class="bg-[#3B82F6] hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-200">Criar
+                        Novo Snippet</button>
+
+                </div>
+
+                <div id="snippets-list-container" class="space-y-4">
+
+                    <!-- A lista de snippets será renderizada aqui -->
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Estado de Gerenciamento de Templates -->
+
+            <div id="templates-state" class="hidden">
+
+                <div class="flex justify-between items-center mb-6">
+
+                    <h1 class="text-3xl font-bold text-gray-100">Meus Templates</h1>
+
+                    <button id="create-new-template-btn"
+                        class="bg-[#3B82F6] hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-200">Criar
+                        Novo Template</button>
+
+                </div>
+
+                <div id="templates-list-container" class="space-y-4">
+
+                    <!-- A lista de templates será renderizada aqui -->
+
+                </div>
+
+            </div>
+
+            <textarea id="clipboard-helper" style="position: absolute; left: -9999px;"></textarea>
+
+            <div id="snippet-tooltip"
+                class="hidden absolute z-10 bg-[#2D2D2D] border border-gray-600 rounded-md shadow-lg p-2 text-sm"></div>
+
+        </main>
+
+    </div>
+
+
+
+    <!-- Modal para Criar/Editar Snippet -->
+
+    <div id="snippet-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+
+        <div class="bg-[#2D2D2D] rounded-lg shadow-xl p-8 w-full max-w-2xl border border-gray-600">
+
+            <h2 id="snippet-modal-title" class="text-2xl font-bold mb-6">Criar Snippet</h2>
+
+            <form id="snippet-form">
+
+                <input type="hidden" id="snippet-original-key">
+
+                <div class="mb-4">
+
+                    <label for="snippet-key-input" class="block text-sm font-medium text-gray-300 mb-1">Atalho (deve
+                        começar com /)</label>
+
+                    <input type="text" id="snippet-key-input"
+                        class="w-full bg-[#1F1F1F] border border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                        required>
+
+                </div>
+
+                <div class="mb-4">
+
+                    <label for="snippet-desc-input"
+                        class="block text-sm font-medium text-gray-300 mb-1">Descrição</label>
+
+                    <input type="text" id="snippet-desc-input"
+                        class="w-full bg-[#1F1F1F] border border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                        required>
+
+                </div>
+
+                <div class="mb-6">
+
+                    <label for="snippet-content-input"
+                        class="block text-sm font-medium text-gray-300 mb-1">Conteúdo</label>
+
+                    <textarea id="snippet-content-input" rows="8"
+                        class="w-full bg-[#1F1F1F] border border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                        required></textarea>
+
+                </div>
+
+                <div class="flex justify-end space-x-4">
+
+                    <button type="button" id="cancel-snippet-btn"
+                        class="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg">Cancelar</button>
+
+                    <button type="submit"
+                        class="bg-[#3B82F6] hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Salvar
+                        Snippet</button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Modal para Criar/Editar Template -->
+
+    <div id="template-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+
+        <div class="bg-[#2D2D2D] rounded-lg shadow-xl p-8 w-full max-w-2xl border border-gray-600">
+
+            <h2 id="template-modal-title" class="text-2xl font-bold mb-6">Criar Template</h2>
+
+            <form id="template-form">
+
+                <input type="hidden" id="template-original-key">
+
+                <div class="mb-4">
+
+                    <label for="template-title-input" class="block text-sm font-medium text-gray-300 mb-1">Título do
+                        Template</label>
+
+                    <input type="text" id="template-title-input"
+                        class="w-full bg-[#1F1F1F] border border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                        required>
+
+                </div>
+
+                <div class="mb-6">
+
+                    <label for="template-content-input" class="block text-sm font-medium text-gray-300 mb-1">Conteúdo
+                        (use {{placeholder}} para campos)</label>
+
+                    <textarea id="template-content-input" rows="12"
+                        class="w-full bg-[#1F1F1F] border border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                        required></textarea>
+
+                </div>
+
+                <div class="flex justify-end space-x-4">
+
+                    <button type="button" id="cancel-template-btn"
+                        class="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg">Cancelar</button>
+
+                    <button type="submit"
+                        class="bg-[#3B82F6] hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Salvar
+                        Template</button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+    <script>
+
+        // --- SELETORES DE ELEMENTOS DO DOM ---
+
+        const defaultState = document.getElementById('default-state');
+
+        const editorState = document.getElementById('editor-state');
+
+        const snippetsState = document.getElementById('snippets-state');
+
+        const templatesState = document.getElementById('templates-state');
+
+        const editorTitle = document.getElementById('editor-title');
+
+        const editorContent = document.getElementById('editor-content');
+
+        const copyButton = document.getElementById('copy-button');
+
+        const clearButton = document.getElementById('clear-button');
+
+        const snippetTooltip = document.getElementById('snippet-tooltip');
+
+        // Links da barra lateral
+
+        const templateListSidebar = document.getElementById('template-list-sidebar');
+
+        const manageTemplatesLink = document.getElementById('manage-templates-link');
+
+        const showSnippetsLink = document.getElementById('show-snippets-link');
+
+
+
+        // Gerenciamento de Snippets
+
+        const snippetsListContainer = document.getElementById('snippets-list-container');
+
+        const snippetModal = document.getElementById('snippet-modal');
+
+        const snippetForm = document.getElementById('snippet-form');
+
+        const createNewSnippetBtn = document.getElementById('create-new-snippet-btn');
+
+        const cancelSnippetBtn = document.getElementById('cancel-snippet-btn');
+
+        // Gerenciamento de Templates
+
+        const templatesListContainer = document.getElementById('templates-list-container');
+
+        const templateModal = document.getElementById('template-modal');
+
+        const templateForm = document.getElementById('template-form');
+
+        const createNewTemplateBtn = document.getElementById('create-new-template-btn');
+
+        const cancelTemplateBtn = document.getElementById('cancel-template-btn');
+
+        let templates = {};
+
+        let snippets = {};
+
+        let currentTemplateId = null;
+
+        let currentSnippetTrigger = null;
+
+
+
+        // --- FUNÇÕES DE NAVEGAÇÃO DE VIEW ---
+
+        function showDefaultState() {
+
+            editorState.classList.add('hidden');
+
+            snippetsState.classList.add('hidden');
+
+            templatesState.classList.add('hidden');
+
+            defaultState.classList.remove('hidden');
+
+            currentTemplateId = null;
+
+            hideSnippetTooltip();
+
+        }
+
+        function showEditorState() {
+
+            defaultState.classList.add('hidden');
+
+            snippetsState.classList.add('hidden');
+
+            templatesState.classList.add('hidden');
+
+            editorState.classList.remove('hidden');
+
+        }
+
+
+
+        function showSnippetsState() {
+
+            defaultState.classList.add('hidden');
+
+            editorState.classList.add('hidden');
+
+            templatesState.classList.add('hidden');
+
+            snippetsState.classList.remove('hidden');
+
+            renderSnippetsList();
+
+        }
+
+
+
+        function showTemplatesState() {
+
+            defaultState.classList.add('hidden');
+
+            editorState.classList.add('hidden');
+
+            snippetsState.classList.add('hidden');
+
+            templatesState.classList.remove('hidden');
+
+            renderTemplatesManagementList();
+
+        }
+
+
+
+        // --- FUNÇÕES DO EDITOR ---
+
+        function loadTemplate(templateKey) {
+
+            if (!templates[templateKey]) return;
+
+            currentTemplateId = templateKey;
+
+            const template = templates[templateKey];
+
+            const contentWithPlaceholders = template.content.replace(/\{\{([^}]+)\}\}/g, (match, p1) => {
+
+                return `<span class="placeholder" data-original-text="${match}">${p1.replace(/_/g, ' ')}</span>`;
+
+            });
+
+            editorTitle.textContent = template.title;
+
+            editorContent.innerHTML = contentWithPlaceholders;
+
+            showEditorState();
+
+            resetAndFocusFirstPlaceholder();
+
+        }
+
+
+
+        function resetAndFocusFirstPlaceholder() {
+
+            const placeholders = editorContent.querySelectorAll('.placeholder');
+
+            if (placeholders.length > 0) {
+
+                placeholders.forEach(p => {
+
+                    p.innerHTML = p.dataset.originalText.replace(/[{}]/g, '').replace(/_/g, ' ');
+
+                    p.classList.remove('active', 'initial-focus', 'placeholder-filled');
+
+                    p.removeAttribute('data-skipped');
+
+                });
+
+                const firstPlaceholder = placeholders[0];
+
+                firstPlaceholder.classList.add('active', 'initial-focus');
+
+                firstPlaceholder.focus();
+
+                const selection = window.getSelection();
+
+                const range = document.createRange();
+
+                range.selectNodeContents(firstPlaceholder);
+
+                selection.removeAllRanges();
+
+                selection.addRange(range);
+
+                setTimeout(() => firstPlaceholder.classList.remove('initial-focus'), 2000);
+
+            }
+
+        }
+
+
+
+        // --- FUNÇÕES DE DADOS (LOCAL STORAGE) ---
+
+        function loadDataFromStorage() {
+
+            const storedSnippets = localStorage.getItem('evoluirMD_snippets');
+
+            if (storedSnippets) {
+
+                snippets = JSON.parse(storedSnippets);
+
+            } else {
+
+                snippets = {
+
+                    '/efnormal': {
+
+                        description: 'Exame físico sem alterações.',
+
+                        content: 'Ao exame, paciente em bom estado geral, corado, hidratado, anictérico, acianótico. Aparelho respiratório com murmúrio vesicular presente universalmente, sem ruídos adventícios. Aparelho cardiovascular com bulhas rítmicas normofonéticas em 2 tempos, sem sopros. Abdome flácido, indolor à palpação, sem visceromegalias. Membros inferiores sem edema, com pulsos periféricos presentes e simétricos.'
+
+                    },
+
+                    '/alta': {
+
+                        description: 'Texto padrão para alta hospitalar.',
+
+                        content: 'Paciente evoluiu com melhora clínica e laboratorial, recebendo alta hospitalar em bom estado geral, com orientações e prescrição entregues.'
+
+                    }
+
+                };
+
+                saveSnippetsToStorage();
+
+            }
+
+            const storedTemplates = localStorage.getItem('evoluirMD_templates');
+
+            if (storedTemplates) {
+
+                templates = JSON.parse(storedTemplates);
+
+            } else {
+
+                templates = {
+
+                    'template_pac': {
+
+                        title: 'Pneumonia Adquirida na Comunidade',
+
+                        content: `Paciente {{nome_paciente}}, {{idade_paciente}} anos, admitido(a) com quadro de tosse produtiva, febre e dispneia há {{dias_sintomas}} dias.\nDiagnóstico: Pneumonia Adquirida na Comunidade (CURB-65 = {{curb_65_score}}).\n\nSinais Vitais: FC: {{fc_bpm}}bpm, FR: {{fr_irpm}}irpm, PA: {{pa_mmhg}}mmHg, SatO2: {{sato2_percent}}% em ar ambiente, Tax: {{tax_celsius}}°C.\n\nPlano:\n1. Iniciar Ceftriaxona + Azitromicina.\n2. Oxigenoterapia suplementar se SatO2 < 92%.\n\nDr(a). {{nome_medico}}\nCRM: {{crm_medico}}`
+
+                    },
+
+                    'template_alta': {
+
+                        title: 'Sumário de Alta Padrão',
+
+                        content: `Paciente {{nome_paciente}}, {{idade_paciente}} anos, esteve internado(a) no período de {{data_inicio}} a {{data_fim}} para tratamento de {{diagnostico_principal}}.\nEvoluiu com melhora clínica e laboratorial, recebendo alta hospitalar em bom estado geral.\n\nOrientações:\n- Retornar em consulta com {{especialidade_retorno}} em {{prazo_retorno}}.\n\nDr(a). {{nome_medico}}\nCRM: {{crm_medico}}`
+
+                    }
+
+                };
+
+                saveTemplatesToStorage();
+
+            }
+
+        }
+
+
+
+        function saveSnippetsToStorage() {
+
+            localStorage.setItem('evoluirMD_snippets', JSON.stringify(snippets));
+
+        }
+
+        function saveTemplatesToStorage() {
+
+            localStorage.setItem('evoluirMD_templates', JSON.stringify(templates));
+
+        }
+
+
+
+        // --- FUNÇÕES DE RENDERIZAÇÃO ---
+
+        function renderSidebarTemplates() {
+
+            templateListSidebar.innerHTML = '';
+
+            if (Object.keys(templates).length === 0) {
+
+                templateListSidebar.innerHTML = `<span class="px-2 py-2 text-xs text-gray-500">Nenhum template criado.</span>`;
+
+            }
+
+            for (const key in templates) {
+
+                const template = templates[key];
+
+                const link = document.createElement('a');
+
+                link.href = '#';
+
+                link.className = 'template-link flex items-center px-2 py-2 text-sm font-medium rounded-md hover:bg-gray-700/50 transition';
+
+                link.dataset.key = key;
+
+                link.innerHTML = `<span class="mr-3">📄</span> ${template.title}`;
+
+                link.addEventListener('click', (e) => {
+
+                    e.preventDefault();
+
+                    loadTemplate(key);
+
+                });
+
+                templateListSidebar.appendChild(link);
+
+            }
+
+        }
+
+
+
+        // --- FUNÇÕES DE GERENCIAMENTO DE TEMPLATES ---
+
+        function renderTemplatesManagementList() {
+
+            templatesListContainer.innerHTML = '';
+
+            if (Object.keys(templates).length === 0) {
+
+                templatesListContainer.innerHTML = `<p class="text-gray-400">Você ainda não criou nenhum template.</p>`;
+
+                return;
+
+            }
+
+
+
+            for (const key in templates) {
+
+                const template = templates[key];
+
+                const el = document.createElement('div');
+
+                el.className = 'bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-700/50';
+
+                el.innerHTML = `
+
+<div>
+
+<h3 class="font-bold text-lg text-gray-200">${template.title}</h3>
+
+</div>
+
+<div class="space-x-2">
+
+<button data-key="${key}" class="edit-template-btn text-blue-400 hover:text-blue-300">Editar</button>
+
+<button data-key="${key}" class="delete-template-btn text-red-400 hover:text-red-300">Excluir</button>
+
+</div>
+
+`;
+
+                templatesListContainer.appendChild(el);
+
+            }
+
+
+
+            document.querySelectorAll('.edit-template-btn').forEach(btn => btn.addEventListener('click', () => openTemplateModal(btn.dataset.key)));
+
+            document.querySelectorAll('.delete-template-btn').forEach(btn => btn.addEventListener('click', () => deleteTemplate(btn.dataset.key)));
+
+        }
+
+
+
+        function openTemplateModal(key = null) {
+
+            templateForm.reset();
+
+            const titleEl = document.getElementById('template-modal-title');
+
+            const originalKeyInput = document.getElementById('template-original-key');
+
+
+
+            if (key) {
+
+                titleEl.textContent = 'Editar Template';
+
+                const template = templates[key];
+
+                originalKeyInput.value = key;
+
+                document.getElementById('template-title-input').value = template.title;
+
+                document.getElementById('template-content-input').value = template.content;
+
+            } else {
+
+                titleEl.textContent = 'Criar Template';
+
+                originalKeyInput.value = '';
+
+            }
+
+            templateModal.classList.remove('hidden');
+
+        }
+
+
+
+        function closeTemplateModal() {
+
+            templateModal.classList.add('hidden');
+
+        }
+
+
+
+        function handleSaveTemplate(e) {
+
+            e.preventDefault();
+
+            const title = document.getElementById('template-title-input').value.trim();
+
+            const content = document.getElementById('template-content-input').value.trim();
+
+            let key = document.getElementById('template-original-key').value;
+
+
+
+            if (!key) { // Criando novo
+
+                key = `template_${Date.now()}`;
+
+            }
+
+
+
+            templates[key] = { title, content };
+
+            saveTemplatesToStorage();
+
+            closeTemplateModal();
+
+            renderTemplatesManagementList();
+
+            renderSidebarTemplates();
+
+        }
+
+
+
+        function deleteTemplate(key) {
+
+            delete templates[key];
+
+            saveTemplatesToStorage();
+
+            renderTemplatesManagementList();
+
+            renderSidebarTemplates();
+
+        }
+
+
+
+        // --- FUNÇÕES DE GERENCIAMENTO DE SNIPPETS ---
+
+        function renderSnippetsList() {
+
+            snippetsListContainer.innerHTML = '';
+
+            if (Object.keys(snippets).length === 0) {
+
+                snippetsListContainer.innerHTML = `<p class="text-gray-400">Você ainda não criou nenhum snippet.</p>`;
+
+                return;
+
+            }
+
+
+
+            for (const key in snippets) {
+
+                const snippet = snippets[key];
+
+                const snippetEl = document.createElement('div');
+
+                snippetEl.className = 'bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-700/50';
+
+                snippetEl.innerHTML = `
+
+<div>
+
+<h3 class="font-bold text-lg text-gray-200">${key}</h3>
+
+<p class="text-gray-400">${snippet.description}</p>
+
+</div>
+
+<div class="space-x-2">
+
+<button data-key="${key}" class="edit-snippet-btn text-blue-400 hover:text-blue-300">Editar</button>
+
+<button data-key="${key}" class="delete-snippet-btn text-red-400 hover:text-red-300">Excluir</button>
+
+</div>
+
+`;
+
+                snippetsListContainer.appendChild(snippetEl);
+
+            }
+
+
+
+            document.querySelectorAll('.edit-snippet-btn').forEach(btn => btn.addEventListener('click', () => openSnippetModal(btn.dataset.key)));
+
+            document.querySelectorAll('.delete-snippet-btn').forEach(btn => btn.addEventListener('click', () => deleteSnippet(btn.dataset.key)));
+
+        }
+
+
+
+        function openSnippetModal(key = null) {
+
+            snippetForm.reset();
+
+            const titleEl = document.getElementById('snippet-modal-title');
+
+            const originalKeyInput = document.getElementById('snippet-original-key');
+
+
+
+            if (key) {
+
+                titleEl.textContent = 'Editar Snippet';
+
+                const snippet = snippets[key];
+
+                originalKeyInput.value = key;
+
+                document.getElementById('snippet-key-input').value = key;
+
+                document.getElementById('snippet-desc-input').value = snippet.description;
+
+                document.getElementById('snippet-content-input').value = snippet.content;
+
+            } else {
+
+                titleEl.textContent = 'Criar Snippet';
+
+                originalKeyInput.value = '';
+
+            }
+
+            snippetModal.classList.remove('hidden');
+
+        }
+
+
+
+        function closeSnippetModal() {
+
+            snippetModal.classList.add('hidden');
+
+        }
+
+
+
+        function handleSaveSnippet(e) {
+
+            e.preventDefault();
+
+            const newKey = document.getElementById('snippet-key-input').value.trim();
+
+            const originalKey = document.getElementById('snippet-original-key').value;
+
+            const description = document.getElementById('snippet-desc-input').value.trim();
+
+            const content = document.getElementById('snippet-content-input').value.trim();
+
+
+
+            if (!newKey.startsWith('/')) { return; }
+
+            if (originalKey && newKey !== originalKey) {
+
+                delete snippets[originalKey];
+
+            }
+
+
+
+            snippets[newKey] = { description, content };
+
+            saveSnippetsToStorage();
+
+            closeSnippetModal();
+
+            renderSnippetsList();
+
+        }
+
+
+
+        function deleteSnippet(key) {
+
+            delete snippets[key];
+
+            saveSnippetsToStorage();
+
+            renderSnippetsList();
+
+        }
+
+
+
+        // --- FUNÇÕES DO TOOLTIP ---
+
+        function showSnippetTooltip(filteredSnippets, rect) {
+
+            snippetTooltip.innerHTML = '';
+
+            if (Object.keys(filteredSnippets).length === 0) {
+
+                hideSnippetTooltip();
+
+                return;
+
+            }
+
+            Object.entries(filteredSnippets).forEach(([key, { description }], index) => {
+
+                const item = document.createElement('a');
+
+                item.href = "#";
+
+                item.className = 'snippet-item';
+
+                if (index === 0) item.classList.add('active');
+
+                item.dataset.key = key;
+
+                item.innerHTML = `<span class="snippet-key">${key}</span><br><span class="snippet-desc">${description}</span>`;
+
+                item.addEventListener('click', (e) => { e.preventDefault(); insertSnippet(key); });
+
+                item.addEventListener('mouseover', (e) => {
+
+                    snippetTooltip.querySelectorAll('.snippet-item').forEach(el => el.classList.remove('active'));
+
+                    e.currentTarget.classList.add('active');
+
+                });
+
+                snippetTooltip.appendChild(item);
+
+            });
+
+
+
+            snippetTooltip.classList.remove('hidden');
+
+            const tooltipHeight = snippetTooltip.offsetHeight;
+
+            snippetTooltip.style.left = `${rect.left}px`;
+
+            snippetTooltip.style.top = `${rect.top - tooltipHeight - 5}px`;
+
+        }
+
+
+
+        function hideSnippetTooltip() {
+
+            snippetTooltip.classList.add('hidden');
+
+            currentSnippetTrigger = null;
+
+        }
+
+        function insertSnippet(key) {
+
+            const snippet = snippets[key];
+
+            if (!snippet) return;
+
+
+
+            const selection = window.getSelection();
+
+            if (!currentSnippetTrigger || !selection.rangeCount) {
+
+                hideSnippetTooltip();
+
+                return;
+
+            }
+
+            const { node, startOffset } = currentSnippetTrigger;
+
+            const range = document.createRange();
+
+            range.setStart(node, startOffset);
+
+            range.setEnd(node, selection.getRangeAt(0).startOffset);
+
+            range.deleteContents();
+
+            const textNode = document.createTextNode(snippet.content);
+
+            range.insertNode(textNode);
+
+
+
+            range.setStartAfter(textNode);
+
+            range.collapse(true);
+
+            selection.removeAllRanges();
+
+            selection.addRange(range);
+
+
+
+            hideSnippetTooltip();
+
+        }
+
+
+
+        function handleEditorInput() {
+
+            const selection = window.getSelection();
+
+            if (!selection.rangeCount || !selection.isCollapsed) {
+
+                hideSnippetTooltip();
+
+                return;
+
+            }
+
+
+
+            const range = selection.getRangeAt(0);
+
+            const node = range.startContainer;
+
+            const offset = range.startOffset;
+
+
+
+            if (node.nodeType !== Node.TEXT_NODE) {
+
+                hideSnippetTooltip();
+
+                return;
+
+            }
+
+            const text = node.textContent.substring(0, offset);
+
+            const triggerIndex = text.lastIndexOf('/');
+
+
+
+            if (triggerIndex === -1 || text.substring(triggerIndex + 1).includes(' ')) {
+
+                hideSnippetTooltip();
+
+                return;
+
+            }
+
+
+
+            const query = text.substring(triggerIndex);
+
+            currentSnippetTrigger = { node, startOffset: triggerIndex };
+
+
+
+            const filtered = Object.keys(snippets)
+
+                .filter(key => key.startsWith(query))
+
+                .reduce((obj, key) => {
+
+                    obj[key] = snippets[key];
+
+                    return obj;
+
+                }, {});
+
+            const rect = range.getBoundingClientRect();
+
+            showSnippetTooltip(filtered, rect);
+
+        }
+
+
+
+        function copyFinalNote() {
+
+            const copyButtonText = document.getElementById('copy-button-text');
+
+            const clipboardHelper = document.getElementById('clipboard-helper');
+
+            const editorClone = editorContent.cloneNode(true);
+
+            editorClone.querySelectorAll('.placeholder').forEach(p => {
+
+                const originalText = p.dataset.originalText.replace(/[{}]/g, '').replace(/_/g, ' ');
+
+                if (p.textContent.trim() === originalText) {
+
+                    p.textContent = p.dataset.originalText;
+
+                }
+
+            });
+
+            clipboardHelper.value = editorClone.innerText;
+
+            clipboardHelper.select();
+
+            try {
+
+                document.execCommand('copy');
+
+                copyButton.classList.remove('bg-[#3B82F6]', 'hover:bg-blue-600');
+
+                copyButton.classList.add('bg-green-500');
+
+                copyButtonText.innerHTML = `✔ Copiado!`;
+
+                setTimeout(() => {
+
+                    copyButton.classList.add('bg-[#3B82F6]', 'hover:bg-blue-600');
+
+                    copyButton.classList.remove('bg-green-500');
+
+                    copyButtonText.textContent = '📋 COPIAR NOTA';
+
+                }, 2000);
+
+            } catch (err) {
+
+                copyButtonText.textContent = 'Erro ao copiar';
+
+                console.error('Falha ao copiar texto: ', err);
+
+            }
+
+        }
+
+
+
+        // --- EVENT LISTENERS ---
+
+        document.addEventListener('keydown', (e) => {
+
+            const isTooltipVisible = !snippetTooltip.classList.contains('hidden');
+
+
+
+            if (e.key === 'Escape') {
+
+                hideSnippetTooltip();
+
+                closeSnippetModal();
+
+                closeTemplateModal();
+
+                return;
+
+            }
+
+
+
+            if (isTooltipVisible) {
+
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+
+                    e.preventDefault();
+
+                    const items = Array.from(snippetTooltip.querySelectorAll('.snippet-item'));
+
+                    if (items.length === 0) return;
+
+                    const currentIndex = items.findIndex(item => item.classList.contains('active'));
+
+                    items[currentIndex]?.classList.remove('active');
+
+                    let nextIndex = (e.key === 'ArrowDown') ? (currentIndex + 1) % items.length : (currentIndex - 1 + items.length) % items.length;
+
+                    items[nextIndex]?.classList.add('active');
+
+                    items[nextIndex]?.scrollIntoView({ block: 'nearest' });
+
+                    return;
+
+                }
+
+                if (e.key === 'Enter' || e.key === 'Tab') {
+
+                    e.preventDefault();
+
+                    const activeSuggestion = snippetTooltip.querySelector('.snippet-item.active');
+
+                    if (activeSuggestion) {
+
+                        insertSnippet(activeSuggestion.dataset.key);
+
+                    }
+
+                    return;
+
+                }
+
+            }
+
+            if (!isTooltipVisible && e.key === 'Tab' && currentTemplateId) {
+
+                const currentlyActive = editorContent.querySelector('.placeholder.active');
+
+                // Apenas previne o comportamento padrão se houver um placeholder ativo
+
+                if (currentlyActive) {
+
+                    e.preventDefault();
+
+                } else {
+
+                    return;
+
+                }
+
+
+
+                const availablePlaceholders = Array.from(editorContent.querySelectorAll('.placeholder:not([data-skipped="true"])'));
+
+                if (availablePlaceholders.length === 0) return;
+
+
+
+                let currentIndex = availablePlaceholders.indexOf(currentlyActive);
+
+                if (currentlyActive) {
+
+                    currentlyActive.classList.remove('active', 'initial-focus');
+
+                    const originalText = currentlyActive.dataset.originalText.replace(/[{}]/g, '').replace(/_/g, ' ');
+
+                    const currentText = currentlyActive.textContent.trim();
+
+                    if (currentText === '' || currentText === originalText) {
+
+                        currentlyActive.innerHTML = originalText;
+
+                        currentlyActive.classList.remove('placeholder-filled');
+
+                        currentlyActive.removeAttribute('data-skipped');
+
+                    } else {
+
+                        currentlyActive.classList.add('placeholder-filled');
+
+                        currentlyActive.setAttribute('data-skipped', 'true');
+
+                    }
+
+                }
+
+                // Recalcula a lista de disponíveis APÓS marcar o atual
+
+                const newAvailablePlaceholders = Array.from(editorContent.querySelectorAll('.placeholder:not([data-skipped="true"])'));
+
+                if (newAvailablePlaceholders.length === 0) {
+
+                    currentlyActive.blur(); // Tira o foco se não houver mais para onde ir
+
+                    return;
+
+                }
+
+
+
+                let nextIndex;
+
+                if (e.shiftKey) {
+
+                    const newCurrentIndex = newAvailablePlaceholders.indexOf(currentlyActive);
+
+                    nextIndex = (newCurrentIndex - 1 + newAvailablePlaceholders.length) % newAvailablePlaceholders.length;
+
+                } else {
+
+                    const newCurrentIndex = newAvailablePlaceholders.indexOf(currentlyActive);
+
+                    nextIndex = (newCurrentIndex + 1) % newAvailablePlaceholders.length;
+
+                }
+
+
+
+                const nextPlaceholder = newAvailablePlaceholders[nextIndex];
+
+
+
+                if (nextPlaceholder) {
+
+                    nextPlaceholder.classList.remove('placeholder-filled');
+
+                    nextPlaceholder.classList.add('active');
+
+                    nextPlaceholder.focus();
+
+                    const selection = window.getSelection();
+
+                    const range = document.createRange();
+
+                    range.selectNodeContents(nextPlaceholder);
+
+                    selection.removeAllRanges();
+
+                    selection.addRange(range);
+
+                }
+
+            }
+
+        });
+
+        editorContent.addEventListener('input', handleEditorInput);
+
+        editorContent.addEventListener('click', (e) => {
+
+            if (e.target.classList.contains('placeholder')) {
+
+                const placeholder = e.target;
+
+                placeholder.removeAttribute('data-skipped');
+
+                placeholder.classList.remove('placeholder-filled');
+
+                editorContent.querySelectorAll('.placeholder.active').forEach(p => p.classList.remove('active'));
+
+                placeholder.classList.add('active');
+
+            }
+
+        });
+
+
+
+        copyButton.addEventListener('click', copyFinalNote);
+
+        clearButton.addEventListener('click', () => { if (currentTemplateId) loadTemplate(currentTemplateId); });
+
+        // Listeners de Snippets
+
+        showSnippetsLink.addEventListener('click', (e) => { e.preventDefault(); showSnippetsState(); });
+
+        createNewSnippetBtn.addEventListener('click', () => openSnippetModal());
+
+        cancelSnippetBtn.addEventListener('click', closeSnippetModal);
+
+        snippetForm.addEventListener('submit', handleSaveSnippet);
+
+
+
+        // Listeners de Templates
+
+        manageTemplatesLink.addEventListener('click', (e) => { e.preventDefault(); showTemplatesState(); });
+
+        createNewTemplateBtn.addEventListener('click', () => openTemplateModal());
+
+        cancelTemplateBtn.addEventListener('click', closeTemplateModal);
+
+        templateForm.addEventListener('submit', handleSaveTemplate);
+
+
+
+        // --- INICIALIZAÇÃO ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            loadDataFromStorage();
+
+            renderSidebarTemplates();
+
+            showDefaultState();
+
+        });
+
+
+
+    </script>
+
+</body>
+
+</html>
