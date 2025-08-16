@@ -136,45 +136,21 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Color picker sincronizado */
-#category-color-input {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border: none;
-    outline: none;
-    cursor: pointer;
-}
-
-#category-color-input::-webkit-color-swatch-wrapper {
-    padding: 0;
-    border: none;
-}
-
-#category-color-input::-webkit-color-swatch {
-    border: none;
-    border-radius: 4px;
-}
-
-#category-color-input::-moz-color-swatch {
-    border: none;
-    border-radius: 4px;
-}
 
 /* ========================================
    ESTILOS PARA SCROLLBARS
    ======================================== */
 
 /* Customização da scrollbar principal */
-.main-content::-webkit-scrollbar { 
+#main-content-area::-webkit-scrollbar { 
     width: 8px; 
 }
 
-.main-content::-webkit-scrollbar-track { 
+#main-content-area::-webkit-scrollbar-track { 
     background: #1A1A1A; 
 }
 
-.main-content::-webkit-scrollbar-thumb {
+#main-content-area::-webkit-scrollbar-thumb {
     background-color: #374151;
     border-radius: 20px;
     border: 3px solid #1A1A1A;
@@ -511,30 +487,6 @@ body {
     display: none;
 }
 
-/* No Results State */
-.no-results-state {
-    text-align: center;
-    padding: 60px 20px;
-}
-
-.no-results-icon {
-    font-size: 4rem;
-    color: #4B5563;
-    margin-bottom: 16px;
-}
-
-.no-results-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #9CA3AF;
-    margin-bottom: 8px;
-}
-
-.no-results-subtitle {
-    color: #6B7280;
-    font-size: 0.875rem;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .template-card {
@@ -585,10 +537,6 @@ body {
         gap: 8px;
     }
     
-    .template-card-badges {
-        align-self: flex-end;
-    }
-    
     .template-card-category {
         max-width: 80px;
     }
@@ -606,12 +554,4 @@ body {
 /* Dashboard Search Bar Animations */
 #template-search:focus + svg {
     color: #3B82F6;
-}
-
-/* Grid responsive behavior */
-@media (min-width: 1280px) {
-    #recent-templates-grid,
-    #all-templates-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
 }
