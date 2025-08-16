@@ -258,64 +258,7 @@ function toggleFavorite(key) {
     }
 }
 
-/**
- * Renderiza a lista de templates na barra lateral
- * Cria links clicáveis para cada template
- */
-function renderSidebarTemplates() {
-    if (!templateListSidebar) return;
-    
-    templateListSidebar.innerHTML = '';
-    
-    if (!window.templates || Object.keys(window.templates).length === 0) {
-        templateListSidebar.innerHTML = `<span class="px-2 py-2 text-xs text-gray-500">Nenhum template criado.</span>`;
-        // Atualiza contador
-        if (window.updateTemplateCounter) {
-            window.updateTemplateCounter();
-        }
-        return;
-    }
-    
-    // Ordena templates por favoritos primeiro, depois por último uso
-    const templateEntries = Object.entries(window.templates).sort((a, b) => {
-        const [keyA, templateA] = a;
-        const [keyB, templateB] = b;
-        
-        // Favoritos primeiro
-        if (templateA.isFavorite && !templateB.isFavorite) return -1;
-        if (!templateA.isFavorite && templateB.isFavorite) return 1;
-        
-        // Depois por último uso
-        const lastUsedA = templateA.lastUsed || 0;
-        const lastUsedB = templateB.lastUsed || 0;
-        return lastUsedB - lastUsedA;
-    });
-    
-    // Cria um link para cada template
-    templateEntries.forEach(([key, template]) => {
-        const link = document.createElement('a');
-        link.href = '#';
-        /**
- * Renderiza a lista de templates na barra lateral
- * Cria links clicáveis para cada template
- */
 
-        link.dataset.key = key;
-        
-        const favoriteIcon = template.isFavorite ? '⭐' : '📄';
-        link.innerHTML = `<span class="mr-3">${favoriteIcon}</span> ${template.title}`;
-        
-        // Adiciona evento de clique para carregar o template
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (window.loadTemplate) {
-                window.loadTemplate(key);
-            }
-        });
-        
-        templateListSidebar.appendChild(link);
-    });
-}
 
 /**
  * Renderiza a lista de templates na tela de gerenciamento

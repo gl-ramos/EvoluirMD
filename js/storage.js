@@ -287,92 +287,6 @@ function getRecentlyUsedTemplates(limit = 6) {
         .slice(0, limit)
         .map(([key, template]) => ({ key, template }));
 }
-function clearAllData() {
-    localStorage.removeItem('evoluirMD_snippets');
-    localStorage.removeItem('evoluirMD_templates');
-    localStorage.removeItem('evoluirMD_categories');
-    
-    // Reinicializa com dados padrão
-    window.snippets = {};
-    window.templates = {};
-    window.categories = {};
-    loadDataFromStorage();
-}
-
-/**
- * Exporta todos os dados para um arquivo JSON
- * Útil para backup
- */
-function exportData() {
-    const data = {
-        snippets: window.snippets || {},
-        templates: window.templates || {},
-        categories: window.categories || {},
-        exportDate: new Date().toISOString(),
-        version: '2.0.0'
-    };
-    
-    const dataStr = JSON.stringify(data, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(dataBlob);
-    link.download = `evoluirMD_backup_${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-}
-
-/**
- * Importa dados de um arquivo JSON
- * @param {File} file - Arquivo JSON para importar
- */
-function importData(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        
-        const cleanup = () => {
-            reader.onload = null;
-            reader.onerror = null;
-        };
-        
-        reader.onload = function(e) {
-            try {
-                const data = JSON.parse(e.target.result);
-                
-                // Valida estrutura dos dados
-                if (data.snippets && data.templates) {
-                    window.snippets = data.snippets;
-                    window.templates = data.templates;
-                    window.categories = data.categories || {};
-                    
-                    // Salva no localStorage
-                    saveSnippetsToStorage();
-                    saveTemplatesToStorage();
-                    saveCategoriesToStorage();
-                    
-                    // Migra dados importados se necessário
-                    migrateTemplatesFormat();
-                    migrateCategoriesFormat();
-                    
-                    cleanup();
-                    resolve('Dados importados com sucesso!');
-                } else {
-                    cleanup();
-                    reject('Formato de arquivo inválido');
-                }
-            } catch (error) {
-                cleanup();
-                reject('Erro ao processar arquivo: ' + error.message);
-            }
-        };
-        
-        reader.onerror = function() {
-            cleanup();
-            reject('Erro ao ler arquivo');
-        };
-        
-        reader.readAsText(file);
-    });
-}
 
 // ========================================
 // EXPOSIÇÃO DE FUNÇÕES
@@ -383,9 +297,6 @@ window.loadDataFromStorage = loadDataFromStorage;
 window.saveSnippetsToStorage = saveSnippetsToStorage;
 window.saveTemplatesToStorage = saveTemplatesToStorage;
 window.saveCategoriesToStorage = saveCategoriesToStorage;
-window.clearAllData = clearAllData;
-window.exportData = exportData;
-window.importData = importData;
 window.migrateTemplatesFormat = migrateTemplatesFormat;
 window.migrateCategoriesFormat = migrateCategoriesFormat;
 window.updateTemplateUsage = updateTemplateUsage;
@@ -398,9 +309,6 @@ export {
     saveSnippetsToStorage,
     saveTemplatesToStorage,
     saveCategoriesToStorage,
-    clearAllData,
-    exportData,
-    importData,
     migrateTemplatesFormat,
     migrateCategoriesFormat,
     updateTemplateUsage,

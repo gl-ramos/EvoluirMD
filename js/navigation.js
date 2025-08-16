@@ -11,6 +11,7 @@
 // SELETORES DE ELEMENTOS DE NAVEGAÇÃO
 // ========================================
 
+const dashboardLink = document.getElementById('dashboard-link');
 const manageTemplatesLink = document.getElementById('manage-templates-link');
 const manageCategoriesLink = document.getElementById('manage-categories-link');
 const manageSnippetsLink = document.getElementById('manage-snippets-link');
@@ -26,6 +27,15 @@ const saveAsTemplate = document.getElementById('save-as-template');
 
 function setupNavigationListeners() {
     // Link para gerenciamento de templates
+    if (dashboardLink) {
+        dashboardLink.addEventListener('click', (e) => { 
+            e.preventDefault(); 
+            if (window.showDefaultState) {
+                window.showDefaultState(); 
+            }
+        });
+    }
+
     if (manageTemplatesLink) {
         manageTemplatesLink.addEventListener('click', (e) => { 
             e.preventDefault(); 
@@ -377,80 +387,12 @@ function setupAllListeners() {
 }
 
 // ========================================
-// FUNÇÕES DE UTILIDADE PARA NAVEGAÇÃO
-// ========================================
-
-/**
- * Ativa um link de navegação
- * @param {string} linkId - ID do link a ser ativado
- */
-function activateLink(linkId) {
-    // Remove estado ativo de todos os links
-    document.querySelectorAll('.nav-link, .template-link').forEach(link => {
-        link.classList.remove('active', 'bg-gray-700', 'bg-blue-600');
-    });
-    
-    // Ativa o link especificado
-    const targetLink = document.getElementById(linkId);
-    if (targetLink) {
-        targetLink.classList.add('active', 'bg-gray-700');
-    }
-}
-
-/**
- * Navega para uma seção específica
- * @param {string} section - Nome da seção ('templates', 'snippets', 'default', 'blank-editor')
- */
-function navigateToSection(section) {
-    switch (section) {
-        case 'templates':
-            if (window.showTemplatesState) {
-                window.showTemplatesState();
-            }
-            activateLink('manage-templates-link');
-            break;
-            
-        case 'categories':
-            if (window.showCategoriesState) {
-                window.showCategoriesState();
-            }
-            activateLink('manage-categories-link');
-            break;
-            
-        case 'snippets':
-            if (window.showSnippetsState) {
-                window.showSnippetsState();
-            }
-            activateLink('manage-snippets-link');
-            break;
-            
-        case 'blank-editor':
-            showBlankEditor();
-            break;
-            
-        case 'default':
-        default:
-            if (window.showDefaultState) {
-                window.showDefaultState();
-            }
-            updateModeIndicator('dashboard', 'Dashboard');
-            // Remove estado ativo de todos os links
-            document.querySelectorAll('.nav-link, .template-link').forEach(link => {
-                link.classList.remove('active', 'bg-gray-700', 'bg-blue-600');
-            });
-            break;
-    }
-}
-
-// ========================================
 // EXPOSIÇÃO DE FUNÇÕES
 // ========================================
 
 // Funções que precisam ser acessíveis globalmente
 window.setupNavigationListeners = setupNavigationListeners;
 window.setupAllListeners = setupAllListeners;
-window.activateLink = activateLink;
-window.navigateToSection = navigateToSection;
 window.showBlankEditor = showBlankEditor;
 window.updateModeIndicator = updateModeIndicator;
 window.updateSnippetCounter = updateSnippetCounter;
@@ -461,8 +403,6 @@ window.hideAllStates = hideAllStates;
 export {
     setupNavigationListeners,
     setupAllListeners,
-    activateLink,
-    navigateToSection,
     showBlankEditor,
     updateModeIndicator,
     updateSnippetCounter,
