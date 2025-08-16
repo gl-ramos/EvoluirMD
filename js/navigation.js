@@ -133,7 +133,9 @@ function setupNavigationListeners() {
 }
 
 function showBlankEditor() {
-    hideAllStates();
+    if (window.hideAllStates) {
+        window.hideAllStates();
+    }
     const editorState = document.getElementById('editor-state');
     
     if (editorState) {
@@ -146,17 +148,6 @@ function showBlankEditor() {
     }
 
     updateModeIndicator('blank-editor', 'Editor em Branco');
-}
-
-function showEditorState() {
-    hideAllStates();
-    const editorState = document.getElementById('editor-state');
-    
-    if (editorState) {
-        editorState.classList.remove('hidden');
-    }
-
-    updateModeIndicator('template', 'Editor de Template');
 }
 
 function toggleDropdown() {
@@ -227,59 +218,6 @@ function renderQuickTemplates() {
     });
 }
 
-function focusFirstNewPlaceholder(insertedFragment) {
-    // Se o fragmento foi inserido, precisamos buscar os placeholders no DOM
-    // Vamos procurar pelos placeholders mais recentemente inseridos
-    setTimeout(() => {
-        const editorContent = getActiveEditor();
-        if (!editorContent) return;
-        
-        // Busca todos os placeholders no editor
-        const allPlaceholders = editorContent.querySelectorAll('.placeholder');
-        
-        // Procura o primeiro placeholder que não tem as classes de estado
-        // (indicando que é um placeholder recém-inserido)
-        const newPlaceholder = Array.from(allPlaceholders).find(p => 
-            !p.classList.contains('active') && 
-            !p.classList.contains('placeholder-filled') &&
-            !p.hasAttribute('data-skipped')
-        );
-        
-        if (newPlaceholder) {
-            // Limpa qualquer seleção anterior
-            const currentActive = editorContent.querySelector('.placeholder.active');
-            if (currentActive) {
-                currentActive.classList.remove('active', 'initial-focus');
-            }
-            
-            // Ativa o novo placeholder
-            newPlaceholder.classList.add('active', 'initial-focus');
-            newPlaceholder.focus();
-            
-            // Seleciona todo o conteúdo do placeholder
-            const selection = window.getSelection();
-            const range = document.createRange();
-            range.selectNodeContents(newPlaceholder);
-            selection.removeAllRanges();
-            selection.addRange(range);
-            
-            // Remove a animação após 2 segundos
-            setTimeout(() => newPlaceholder.classList.remove('initial-focus'), 2000);
-        }
-    }, 10);
-}
-
-function getActiveEditor() {
-    const editorContent = document.getElementById('editor-content');
-    const editorState = document.getElementById('editor-state');
-
-    if (editorContent && editorState && !editorState.classList.contains('hidden')) {
-        return editorContent;
-    }
-    
-    return null;
-}
-
 function handleHeaderSearch(e) {
     const query = e ? e.target.value.trim() : headerSearch.value.trim();
     const clearBtn = document.getElementById('clear-search');
@@ -318,40 +256,8 @@ function updateModeIndicator(mode, text) {
 
 function updateSnippetCounter() {
     const snippetCount = window.snippets ? Object.keys(window.snippets).length : 0;
-    const headerSnippetCount = document.getElementById('header-snippet-count');
-    
-    if (headerSnippetCount) {
-        headerSnippetCount.textContent = snippetCount;
-    }
-}
-
-function updateTemplateCounter() {
-    const templateCount = window.templates ? Object.keys(window.templates).length : 0;
-}
-
-/**
- * Esconde todos os estados
- */
-function hideAllStates() {
-    const states = ['default-state', 'editor-state', 'snippets-state', 'templates-state', 'categories-state'];
-    states.forEach(stateId => {
-        const element = document.getElementById(stateId);
-        if (element) {
-            element.classList.add('hidden');
-        }
-    });
-}
-
-/**
- * Copia texto para a área de transferência
- */
-function copyToClipboard(text) {
-    const textarea = document.getElementById('clipboard-helper');
-    if (textarea) {
-        textarea.value = text;
-        textarea.select();
-        document.execCommand('copy');
-    }
+    // Note: header-snippet-count element doesn't exist in HTML yet
+    // Future enhancement: Add snippet counter to header if needed
 }
 
 /**
@@ -383,7 +289,6 @@ function setupAllListeners() {
 
     // Atualiza contadores iniciais
     updateSnippetCounter();
-    updateTemplateCounter();
 }
 
 // ========================================
@@ -396,8 +301,6 @@ window.setupAllListeners = setupAllListeners;
 window.showBlankEditor = showBlankEditor;
 window.updateModeIndicator = updateModeIndicator;
 window.updateSnippetCounter = updateSnippetCounter;
-window.updateTemplateCounter = updateTemplateCounter;
-window.hideAllStates = hideAllStates;
 
 // Exporta funções para uso em outros módulos
 export {
@@ -405,12 +308,5 @@ export {
     setupAllListeners,
     showBlankEditor,
     updateModeIndicator,
-    updateSnippetCounter,
-    updateTemplateCounter,
-    hideAllStates
+    updateSnippetCounter
 };
-
-// Inicializa os listeners quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', () => {
-    // A inicialização agora é feita em app.js
-});

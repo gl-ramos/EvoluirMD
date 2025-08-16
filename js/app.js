@@ -33,31 +33,24 @@ import './navigation.js';
  * Configura todos os módulos e inicia a aplicação
  */
 function initializeApplication() {
-    console.log('🚀 Inicializando EvoluirMD...');
-    
     try {
         // 1. Carrega dados do localStorage
         if (window.loadDataFromStorage) {
             window.loadDataFromStorage();
-            console.log('✅ Dados carregados com sucesso');
         }
         
         // 2. Configura todos os event listeners
         if (window.setupAllListeners) {
             window.setupAllListeners();
-            console.log('✅ Event listeners configurados');
         }
         
         // 3. Mostra estado padrão
         if (window.showDefaultState) {
             window.showDefaultState();
-            console.log('✅ Estado padrão exibido');
         }
         
-        console.log('🎉 EvoluirMD inicializado com sucesso!');
-        
     } catch (error) {
-        console.error('❌ Erro durante a inicialização:', error);
+        console.error('Erro durante a inicialização:', error);
         
         // Fallback: tenta inicializar com funcionalidades básicas
         try {
@@ -67,9 +60,8 @@ function initializeApplication() {
             if (window.showDefaultState) {
                 window.showDefaultState();
             }
-            console.log('⚠️ Aplicação inicializada com funcionalidades limitadas');
         } catch (fallbackError) {
-            console.error('❌ Falha no fallback:', fallbackError);
+            console.error('Falha no fallback:', fallbackError);
         }
     }
 }
@@ -110,60 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (checkDependencies()) {
             initializeApplication();
         } else {
-            console.error('❌ Dependências não atendidas. Verifique se todos os módulos estão carregados.');
-            
-            // Tenta inicializar novamente após um delay maior
-            setTimeout(() => {
-                if (checkDependencies()) {
-                    initializeApplication();
-                } else {
-                    console.error('❌ Falha na inicialização após retry');
-                }
-            }, 1000);
+            console.error('Dependencies not met. Please check if all modules are loaded.');
         }
     }, 100);
 });
-
-// ========================================
-// FUNÇÕES DE UTILIDADE GLOBAIS
-// ========================================
-
-/**
- * Função para debug da aplicação
- * Mostra informações sobre o estado atual
- */
-window.debugApplication = function() {
-    console.group('🐛 Debug da Aplicação EvoluirMD');
-    console.log('Templates:', window.templates);
-    console.log('Snippets:', window.snippets);
-    console.log('Categories:', window.categories);
-    console.log('Template Atual:', window.currentTemplateId);
-    console.log('Módulos Carregados:', {
-        stateManager: !!window.showDefaultState,
-        storage: !!window.loadDataFromStorage,
-        editor: !!window.loadTemplate,
-        snippets: !!window.renderSnippetsList,
-        templates: !!window.renderTemplatesManagementList,
-        categories: !!window.renderCategoriesManagementList,
-        keyboard: !!window.handleKeyboardEvents,
-        navigation: !!window.setupAllListeners
-    });
-    console.groupEnd();
-};
-
-/**
- * Função para reinicializar a aplicação
- * Útil para desenvolvimento e debugging
- */
-window.reinitializeApplication = function() {
-    console.log('🔄 Reinicializando aplicação...');
-    
-    // Limpa event listeners existentes
-    document.removeEventListener('keydown', window.handleKeyboardEvents);
-    
-    // Reinicializa
-    initializeApplication();
-};
 
 // ========================================
 // EXPOSIÇÃO DE FUNÇÕES GLOBAIS
@@ -172,9 +114,3 @@ window.reinitializeApplication = function() {
 // Funções que precisam ser acessíveis globalmente
 window.initializeApplication = initializeApplication;
 window.checkDependencies = checkDependencies;
-
-// ========================================
-// MENSAGEM DE CARREGAMENTO
-// ========================================
-
-console.log('📦 Módulos EvoluirMD carregados. Aguardando inicialização...');

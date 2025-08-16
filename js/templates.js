@@ -199,7 +199,7 @@ function addCardEventListeners(container) {
     const cards = container.querySelectorAll('.template-card');
     cards.forEach(card => {
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.template-card-favorite') || 
+            if (e.target.closest('.template-card-action.favorite') || 
                 e.target.closest('.template-card-actions')) {
                 return;
             }

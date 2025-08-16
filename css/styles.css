@@ -33,7 +33,8 @@ body {
 #quick-templates-list .template-quick-item {
     display: block;
     padding: 6px 8px;
-    text-sm: font-medium;
+    font-size: 0.875rem;
+    font-weight: 500;
     color: #9CA3AF;
     border-radius: 4px;
     transition: all 0.2s ease;
@@ -142,12 +143,12 @@ body {
    ======================================== */
 
 /* Customização da scrollbar principal */
-#main-content-area::-webkit-scrollbar { 
-    width: 8px; 
+#main-content-area::-webkit-scrollbar {
+    width: 8px;
 }
 
-#main-content-area::-webkit-scrollbar-track { 
-    background: #1A1A1A; 
+#main-content-area::-webkit-scrollbar-track {
+    background: #1A1A1A;
 }
 
 #main-content-area::-webkit-scrollbar-thumb {
@@ -161,8 +162,8 @@ body {
    ======================================== */
 
 /* Largura mínima do tooltip */
-#snippet-tooltip { 
-    min-width: 250px; 
+#snippet-tooltip {
+    min-width: 250px;
 }
 
 /* Estilo para itens do tooltip */
@@ -175,27 +176,27 @@ body {
 }
 
 /* Estados hover e ativo para itens do tooltip */
-.snippet-item:hover, 
-.snippet-item.active { 
-    background-color: #3B82F6; 
+.snippet-item:hover,
+.snippet-item.active {
+    background-color: #3B82F6;
 }
 
 /* Estilo para a chave do snippet */
-.snippet-key { 
-    font-weight: 600; 
-    color: #E5E7EB; 
+.snippet-key {
+    font-weight: 600;
+    color: #E5E7EB;
 }
 
 /* Estilo para a descrição do snippet */
-.snippet-desc { 
-    font-size: 0.8rem; 
-    color: #9CA3AF; 
+.snippet-desc {
+    font-size: 0.8rem;
+    color: #9CA3AF;
 }
 
 /* Mudança de cor da descrição no hover/ativo */
-.snippet-item:hover .snippet-desc, 
-.snippet-item.active .snippet-desc { 
-    color: #E5E7EB; 
+.snippet-item:hover .snippet-desc,
+.snippet-item.active .snippet-desc {
+    color: #E5E7EB;
 }
 
 /* ========================================
@@ -242,7 +243,7 @@ body {
 .template-card:hover {
     border-color: var(--category-color, #3B82F6);
     transform: translateY(-4px);
-    box-shadow: 
+    box-shadow:
         0 20px 40px rgba(0, 0, 0, 0.3),
         0 0 0 1px var(--category-color, #3B82F6);
 }
@@ -492,33 +493,33 @@ body {
     .template-card {
         min-height: 200px;
     }
-    
+
     .template-card-header {
         padding: 16px 16px 12px 16px;
     }
-    
+
     .template-card-content {
         padding: 0 16px;
     }
-    
+
     .template-card-footer {
         padding: 12px 16px 16px 16px;
     }
-    
+
     .template-card-title {
         font-size: 1.1rem;
     }
-    
+
     .template-card-actions {
         opacity: 1;
         transform: translateX(0);
     }
-    
+
     .template-card-action {
         font-size: 0.7rem;
         padding: 6px 10px;
     }
-    
+
     .template-card-category {
         max-width: 100px;
         font-size: 0.65rem;
@@ -530,21 +531,21 @@ body {
     .template-card {
         min-height: 180px;
     }
-    
+
     .template-card-top-row {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
     }
-    
+
     .template-card-category {
         max-width: 80px;
     }
-    
+
     .template-card-actions {
         gap: 6px;
     }
-    
+
     .template-card-action {
         font-size: 0.65rem;
         padding: 5px 8px;
