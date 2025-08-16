@@ -235,161 +235,275 @@ body {
    ESTILOS PARA DASHBOARD E TEMPLATE CARDS
    ======================================== */
 
-/* Template Card */
+/* Template Card - Redesign Intuitivo */
 .template-card {
-    background: linear-gradient(135deg, #2D2D2D 0%, #262626 100%);
-    border: 1px solid #404040;
-    border-radius: 12px;
-    padding: 20px;
-    transition: all 0.3s ease;
+    background: linear-gradient(145deg, #2A2A2A 0%, #242424 100%);
+    border: 1px solid #3A3A3A;
+    border-radius: 16px;
+    padding: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 240px;
+    backdrop-filter: blur(10px);
+}
+
+.template-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--category-color, #3B82F6);
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
 }
 
 .template-card:hover {
-    border-color: #3B82F6;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+    border-color: var(--category-color, #3B82F6);
+    transform: translateY(-4px);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.3),
+        0 0 0 1px var(--category-color, #3B82F6);
+}
+
+.template-card:hover::before {
+    opacity: 1;
 }
 
 .template-card:hover .template-card-title {
-    color: #93C5FD;
+    color: #FFFFFF;
 }
 
-/* Template Card Header */
+/* Template Card Header - Melhorado */
 .template-card-header {
+    padding: 20px 20px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.template-card-top-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 12px;
-    min-height: 24px;
-    gap: 8px;
+    gap: 12px;
+}
+
+.template-card-title-section {
+    flex: 1;
+    min-width: 0;
 }
 
 .template-card-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #E5E7EB;
-    margin: 0;
-    line-height: 1.4;
-    transition: color 0.3s ease;
-    flex: 1;
-}
-
-.template-card-header-left {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    flex: 1;
-}
-
-.template-card-favorite {
-    background: none;
-    border: none;
-    color: #6B7280;
     font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-weight: 700;
+    color: #E5E7EB;
+    margin: 0 0 8px 0;
+    line-height: 1.3;
     transition: color 0.3s ease;
-    flex-shrink: 0;
-}
-
-.template-card-favorite:hover {
-    color: #FBBF24;
-}
-
-.template-card-favorite.favorited {
-    color: #FBBF24;
-}
-
-/* Template Card Content */
-.template-card-preview {
-    font-size: 0.875rem;
-    color: #9CA3AF;
-    line-height: 1.5;
-    margin-bottom: 16px;
+    overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    overflow: hidden;
+    line-clamp: 2;
 }
 
-/* Template Card Footer */
-.template-card-footer {
+.template-card-subtitle {
+    font-size: 0.8rem;
+    color: #9CA3AF;
+    margin: 0;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 8px;
+}
+
+/* Category Badge - Redesign Completo */
+.template-card-category-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.template-card-category {
+    background: var(--category-color, #3B82F6);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 140px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.template-card-category:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.template-card-category-icon {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.template-card-category-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+/* Template Card Content */
+.template-card-content {
+    padding: 0 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.template-card-preview {
+    font-size: 0.9rem;
+    color: #9CA3AF;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-clamp: 3;
+    overflow: hidden;
+    margin: 0;
+    text-align: left;
+}
+
+/* Template Card Footer - Redesign */
+.template-card-footer {
+    padding: 16px 20px 20px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     margin-top: auto;
 }
 
 .template-card-meta {
-    font-size: 0.75rem;
-    color: #6B7280;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.template-card-category {
-    background: #374151;
-    color: #D1D5DB;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: 500;
-    display: inline-block;
+    display: none;
 }
 
 .template-card-actions {
     display: flex;
     gap: 8px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.template-card:hover .template-card-actions {
     opacity: 1;
+    transition: all 0.3s ease;
+    transform: translateX(0);
 }
 
 .template-card-action {
-    background: #3B82F6;
+    background: var(--category-color, #3B82F6);
     color: white;
     border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
     font-size: 0.75rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .template-card-action:hover {
-    background: #2563EB;
+    background: var(--category-color-dark, #2563EB);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .template-card-action.secondary {
-    background: #6B7280;
+    background: rgba(255, 255, 255, 0.1);
+    color: #D1D5DB;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .template-card-action.secondary:hover {
-    background: #4B5563;
+    background: rgba(255, 255, 255, 0.15);
+    color: #FFFFFF;
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* Recently Used Badge */
-.recent-badge {
-    background: #059669;
+.template-card-action.favorite {
+    background: var(--category-color, #3B82F6);
     color: white;
-    font-size: 0.625rem;
-    padding: 2px 6px;
-    border-radius: 8px;
-    font-weight: 500;
-    white-space: nowrap;
-    align-self: flex-start;
+    border: none;
+    min-width: auto;
+    padding: 8px 12px;
+}
+
+.template-card-action.favorite:hover {
+    background: var(--category-color-dark, #2563EB);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.template-card-action.favorite.favorited {
+    background: #FBBF24;
+    color: white;
+}
+
+.template-card-action.favorite.favorited:hover {
+    background: #F59E0B;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Loading state para cards */
+.template-card.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.template-card.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Efeito de foco para acessibilidade */
+.template-card:focus-visible {
+    outline: 2px solid var(--category-color, #3B82F6);
+    outline-offset: 2px;
+}
+
+.template-card-action:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
 }
 
 /* Search Results */
@@ -424,20 +538,68 @@ body {
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .template-card {
-        padding: 16px;
+        min-height: 200px;
+    }
+    
+    .template-card-header {
+        padding: 16px 16px 12px 16px;
+    }
+    
+    .template-card-content {
+        padding: 0 16px;
+    }
+    
+    .template-card-footer {
+        padding: 12px 16px 16px 16px;
     }
     
     .template-card-title {
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
     
     .template-card-actions {
         opacity: 1;
+        transform: translateX(0);
     }
     
     .template-card-action {
         font-size: 0.7rem;
-        padding: 4px 8px;
+        padding: 6px 10px;
+    }
+    
+    .template-card-category {
+        max-width: 100px;
+        font-size: 0.65rem;
+        padding: 4px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .template-card {
+        min-height: 180px;
+    }
+    
+    .template-card-top-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .template-card-badges {
+        align-self: flex-end;
+    }
+    
+    .template-card-category {
+        max-width: 80px;
+    }
+    
+    .template-card-actions {
+        gap: 6px;
+    }
+    
+    .template-card-action {
+        font-size: 0.65rem;
+        padding: 5px 8px;
     }
 }
 

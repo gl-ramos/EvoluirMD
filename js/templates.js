@@ -135,39 +135,55 @@ function createTemplateCard(key, template, isRecent = false) {
     // Busca a categoria pelo ID ou usa valores padrão
     const category = window.getCategoryById ? window.getCategoryById(template.categoryId) : null;
     const categoryName = category ? category.name : (template.category || 'Geral');
-    const categoryColor = category ? category.color : '#6B7280';
+    const categoryColor = category ? category.color : '#3B82F6';
+    
+    // Gera uma cor mais escura para o hover
+    const categoryColorDark = adjustColor(categoryColor, -20);
+    
+    // Abrevia o nome da categoria se for muito longo
+    const abbreviatedCategoryName = abbreviateText(categoryName, 12);
     
     return `
-        <div class="template-card" data-key="${key}">
+        <div class="template-card" data-key="${key}" style="--category-color: ${categoryColor}; --category-color-dark: ${categoryColorDark};">
             <div class="template-card-header">
-                <div class="template-card-header-left">
-                    ${isRecent ? '<div class="recent-badge">Recente</div>' : ''}
-                    <h3 class="template-card-title">${escapeHtml(template.title)}</h3>
+                <div class="template-card-top-row">
+                    <div class="template-card-title-section">
+                        <h3 class="template-card-title">${escapeHtml(template.title)}</h3>
+                        <div class="template-card-subtitle">
+                            <div class="template-card-category-row">
+                                <div class="template-card-category" style="background: ${categoryColor};" title="${escapeHtml(categoryName)}">
+                                    <div class="template-card-category-icon"></div>
+                                    <span class="template-card-category-text">${escapeHtml(abbreviatedCategoryName)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <button 
-                    class="template-card-favorite ${isFavorite ? 'favorited' : ''}" 
-                    data-key="${key}"
-                    onclick="event.stopPropagation(); toggleFavorite('${key}')"
-                >
-                    ${isFavorite ? '★' : '☆'}
-                </button>
             </div>
             
-            <div class="template-card-preview">${escapeHtml(preview)}</div>
+            <div class="template-card-content">
+                <p class="template-card-preview">${escapeHtml(preview)}</p>
+            </div>
             
             <div class="template-card-footer">
                 <div class="template-card-meta">
-                    <div class="template-card-category" style="background-color: ${categoryColor}20; color: ${categoryColor}; border: 1px solid ${categoryColor}40;">
-                        ${escapeHtml(categoryName)}
-                    </div>
+                    <!-- Meta information area - currently empty -->
                 </div>
                 
                 <div class="template-card-actions">
-                    <button class="template-card-action" onclick="event.stopPropagation(); useTemplate('${key}')">
-                        Usar
+                    <button class="template-card-action" onclick="event.stopPropagation(); useTemplate('${key}')" title="Usar este template">
+                        ▶️ Usar
                     </button>
-                    <button class="template-card-action secondary" onclick="event.stopPropagation(); editTemplate('${key}')">
-                        Editar
+                    <button class="template-card-action secondary" onclick="event.stopPropagation(); editTemplate('${key}')" title="Editar template">
+                        ✏️ Editar
+                    </button>
+                    <button 
+                        class="template-card-action favorite ${isFavorite ? 'favorited' : ''}" 
+                        data-key="${key}"
+                        onclick="event.stopPropagation(); toggleFavorite('${key}')"
+                        title="${isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}"
+                    >
+                        ${isFavorite ? '★' : '☆'}
                     </button>
                 </div>
             </div>
@@ -222,6 +238,35 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+/**
+ * Abrevia texto se for muito longo
+ * @param {string} text - Texto para abreviar
+ * @param {number} maxLength - Comprimento máximo
+ * @returns {string} Texto abreviado
+ */
+function abbreviateText(text, maxLength) {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength - 3) + '...';
+}
+
+/**
+ * Ajusta a cor tornando-a mais clara ou escura
+ * @param {string} color - Cor em formato hex
+ * @param {number} percent - Porcentagem de ajuste (-100 a 100)
+ * @returns {string} Cor ajustada
+ */
+function adjustColor(color, percent) {
+    const num = parseInt(color.replace("#", ""), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+        (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+        (B < 255 ? B < 1 ? 0 : B : 255))
+        .toString(16).slice(1);
 }
 
 /**
