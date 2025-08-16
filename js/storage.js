@@ -7,6 +7,9 @@
  * usando localStorage, incluindo templates e snippets padrão
  */
 
+// Importa configurações padrão
+import { DEFAULT_TEMPLATES, DEFAULT_SNIPPETS } from './config.js';
+
 // ========================================
 // FUNÇÕES DE PERSISTÊNCIA DE DADOS
 // ========================================
@@ -104,20 +107,7 @@ function loadDataFromStorage() {
         window.snippets = JSON.parse(storedSnippets);
     } else {
         // Snippets padrão para novos usuários
-        window.snippets = {
-            '/efnormal': {
-                description: 'Exame físico sem alterações.',
-                content: 'Ao exame, paciente em bom estado geral, corado, hidratado, anictérico, acianótico. Aparelho respiratório com murmúrio vesicular presente universalmente, sem ruídos adventícios. Aparelho cardiovascular com bulhas rítmicas normofonéticas em 2 tempos, sem sopros. Abdome flácido, indolor à palpação, sem visceromegalias. Membros inferiores sem edema, com pulsos periféricos presentes e simétricos.'
-            },
-            '/alta': {
-                description: 'Texto padrão para alta hospitalar.',
-                content: 'Paciente evoluiu com melhora clínica e laboratorial, recebendo alta hospitalar em bom estado geral, com orientações e prescrição entregues.'
-            },
-            '/exame': {
-                description: 'Template de exame físico com placeholders.',
-                content: 'Paciente {{nome_paciente}}, {{idade_paciente}} anos, apresenta-se em {{estado_geral}}. Sinais vitais: PA: {{pressao_arterial}}mmHg, FC: {{frequencia_cardiaca}}bpm, FR: {{frequencia_respiratoria}}irpm, Tax: {{temperatura}}°C. {{exame_detalhado}}'
-            }
-        };
+        window.snippets = DEFAULT_SNIPPETS;
         saveSnippetsToStorage();
     }
     
@@ -128,26 +118,16 @@ function loadDataFromStorage() {
     } else {
         // Templates padrão para novos usuários
         const now = Date.now();
-        window.templates = {
-            'template_pac': {
-                title: 'Pneumonia Adquirida na Comunidade',
-                content: `Paciente {{nome_paciente}}, {{idade_paciente}} anos, admitido(a) com quadro de tosse produtiva, febre e dispneia há {{dias_sintomas}} dias.\nDiagnóstico: Pneumonia Adquirida na Comunidade (CURB-65 = {{curb_65_score}}).\n\nSinais Vitais: FC: {{fc_bpm}}bpm, FR: {{fr_irpm}}irpm, PA: {{pa_mmhg}}mmHg, SatO2: {{sato2_percent}}% em ar ambiente, Tax: {{tax_celsius}}°C.\n\nPlano:\n1. Iniciar Ceftriaxona + Azitromicina.\n2. Oxigenoterapia suplementar se SatO2 < 92%.\n\nDr(a). {{nome_medico}}\nCRM: {{crm_medico}}`,
+        window.templates = {};
+        for (const key in DEFAULT_TEMPLATES) {
+            window.templates[key] = {
+                ...DEFAULT_TEMPLATES[key],
                 lastUsed: null,
                 usageCount: 0,
                 isFavorite: false,
-                categoryId: 'pneumologia',
                 createdAt: now
-            },
-            'template_alta': {
-                title: 'Sumário de Alta Padrão',
-                content: `Paciente {{nome_paciente}}, {{idade_paciente}} anos, esteve internado(a) no período de {{data_inicio}} a {{data_fim}} para tratamento de {{diagnostico_principal}}.\nEvoluiu com melhora clínica e laboratorial, recebendo alta hospitalar em bom estado geral.\n\nOrientações:\n- Retornar em consulta com {{especialidade_retorno}} em {{prazo_retorno}}.\n\nDr(a). {{nome_medico}}\nCRM: {{crm_medico}}`,
-                lastUsed: null,
-                usageCount: 0,
-                isFavorite: false,
-                categoryId: 'alta',
-                createdAt: now
-            }
-        };
+            };
+        }
         saveTemplatesToStorage();
     }
     

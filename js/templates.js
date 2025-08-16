@@ -232,6 +232,9 @@ function useTemplate(key) {
     if (window.loadTemplate) {
         window.loadTemplate(key);
     }
+    if (window.showEditorState) {
+        window.showEditorState();
+    }
 }
 
 /**
@@ -292,7 +295,11 @@ function renderSidebarTemplates() {
     templateEntries.forEach(([key, template]) => {
         const link = document.createElement('a');
         link.href = '#';
-        link.className = 'template-link flex items-center px-2 py-2 text-sm font-medium rounded-md hover:bg-gray-700/50 transition';
+        /**
+ * Renderiza a lista de templates na barra lateral
+ * Cria links clicáveis para cada template
+ */
+
         link.dataset.key = key;
         
         const favoriteIcon = template.isFavorite ? '⭐' : '📄';
@@ -308,11 +315,6 @@ function renderSidebarTemplates() {
         
         templateListSidebar.appendChild(link);
     });
-
-    // Atualiza contador
-    if (window.updateTemplateCounter) {
-        window.updateTemplateCounter();
-    }
 }
 
 /**
@@ -450,7 +452,6 @@ function handleSaveTemplate(e) {
     
     closeTemplateModal();
     renderTemplatesManagementList();
-    renderSidebarTemplates();
     renderDashboard(); // Atualiza o dashboard
 }
 
@@ -467,7 +468,6 @@ function deleteTemplate(key) {
     }
     
     renderTemplatesManagementList();
-    renderSidebarTemplates();
     renderDashboard(); // Atualiza o dashboard
 }
 
@@ -611,7 +611,6 @@ function setupTemplatesListeners() {
 // ========================================
 
 // Funções que precisam ser acessíveis globalmente
-window.renderSidebarTemplates = renderSidebarTemplates;
 window.renderTemplatesManagementList = renderTemplatesManagementList;
 window.openTemplateModal = openTemplateModal;
 window.closeTemplateModal = closeTemplateModal;
@@ -628,7 +627,6 @@ window.toggleFavorite = toggleFavorite;
 
 // Exporta funções para uso em outros módulos
 export {
-    renderSidebarTemplates,
     renderTemplatesManagementList,
     openTemplateModal,
     closeTemplateModal,

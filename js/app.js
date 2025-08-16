@@ -42,19 +42,13 @@ function initializeApplication() {
             console.log('✅ Dados carregados com sucesso');
         }
         
-        // 2. Renderiza templates na barra lateral
-        if (window.renderSidebarTemplates) {
-            window.renderSidebarTemplates();
-            console.log('✅ Sidebar de templates renderizada');
-        }
-        
-        // 3. Configura todos os event listeners
+        // 2. Configura todos os event listeners
         if (window.setupAllListeners) {
             window.setupAllListeners();
             console.log('✅ Event listeners configurados');
         }
         
-        // 4. Mostra estado padrão
+        // 3. Mostra estado padrão
         if (window.showDefaultState) {
             window.showDefaultState();
             console.log('✅ Estado padrão exibido');
@@ -91,7 +85,6 @@ function initializeApplication() {
 function checkDependencies() {
     const requiredModules = [
         'loadDataFromStorage',
-        'renderSidebarTemplates',
         'showDefaultState',
         'setupAllListeners'
     ];
@@ -150,7 +143,7 @@ window.debugApplication = function() {
         storage: !!window.loadDataFromStorage,
         editor: !!window.loadTemplate,
         snippets: !!window.renderSnippetsList,
-        templates: !!window.renderSidebarTemplates,
+        templates: !!window.renderTemplatesManagementList,
         categories: !!window.renderCategoriesManagementList,
         keyboard: !!window.handleKeyboardEvents,
         navigation: !!window.setupAllListeners

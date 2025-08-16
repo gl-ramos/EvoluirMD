@@ -125,11 +125,6 @@ function setupEditorForMode() {
     } else {
         editorContent.removeAttribute('placeholder');
     }
-
-    // Atualiza sidebar se necessário
-    if (editorMode === 'template' && window.renderSidebarTemplates) {
-        window.renderSidebarTemplates();
-    }
 }
 
 /**

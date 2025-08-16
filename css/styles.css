@@ -45,58 +45,6 @@ body {
     color: #E5E7EB;
 }
 
-/* Painel de Snippets */
-.snippets-panel-item {
-    display: flex;
-    align-items: center;
-    justify-content: between;
-    padding: 6px 12px;
-    text-sm;
-    color: #9CA3AF;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    group;
-}
-
-.snippets-panel-item:hover {
-    background-color: rgba(55, 65, 81, 0.5);
-    color: #E5E7EB;
-}
-
-.snippet-trigger {
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    font-size: 0.75rem;
-    color: #A78BFA;
-    font-weight: 600;
-    pointer-events: none;
-}
-
-.snippet-desc {
-    font-size: 0.75rem;
-    color: #6B7280;
-    margin-left: 8px;
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    pointer-events: none;
-}
-
-.snippets-panel-item:hover .snippet-desc {
-    color: #9CA3AF;
-}
-
-/* Badges de contagem */
-.count-badge {
-    background-color: rgba(55, 65, 81, 0.7);
-    color: #9CA3AF;
-    font-size: 0.75rem;
-    padding: 2px 6px;
-    border-radius: 12px;
-    font-weight: 500;
-}
-
 /* Header melhorado */
 .mode-indicator-dot {
     width: 8px;

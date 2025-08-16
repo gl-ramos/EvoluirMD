@@ -56,9 +56,6 @@ function showDefaultState() {
     if (window.updateModeIndicator) {
         window.updateModeIndicator('dashboard', 'Dashboard');
     }
-    if (window.updateHeaderForEditor) {
-        window.updateHeaderForEditor(false);
-    }
     
     // Renderiza o dashboard
     if (window.renderDashboard) {
@@ -78,9 +75,6 @@ function showEditorState() {
     if (window.updateModeIndicator) {
         window.updateModeIndicator('template', 'Editor de Template');
     }
-    if (window.updateHeaderForEditor) {
-        window.updateHeaderForEditor(true);
-    }
 }
 
 /**
@@ -94,9 +88,6 @@ function showSnippetsState() {
     // Atualiza header e indicadores
     if (window.updateModeIndicator) {
         window.updateModeIndicator('snippets', 'Gerenciar Snippets');
-    }
-    if (window.updateHeaderForEditor) {
-        window.updateHeaderForEditor(false);
     }
     
     // Renderiza lista de snippets
@@ -117,9 +108,6 @@ function showTemplatesState() {
     if (window.updateModeIndicator) {
         window.updateModeIndicator('template', 'Gerenciar Templates');
     }
-    if (window.updateHeaderForEditor) {
-        window.updateHeaderForEditor(false);
-    }
     
     // Renderiza lista de templates
     if (window.renderTemplatesManagementList) {
@@ -138,9 +126,6 @@ function showCategoriesState() {
     // Atualiza header e indicadores
     if (window.updateModeIndicator) {
         window.updateModeIndicator('template', 'Gerenciar Categorias');
-    }
-    if (window.updateHeaderForEditor) {
-        window.updateHeaderForEditor(false);
     }
     
     // Renderiza lista de categorias

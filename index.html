@@ -37,9 +37,6 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
                     <span>Novo Documento</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
                 </button>
                 
                 <!-- Dropdown Menu -->
@@ -67,57 +64,17 @@
             </div>
         </div>
 
-        <!-- Snippets Panel -->
-        <div class="mb-6">
-            <button id="snippets-panel-toggle" class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700/50 transition rounded-lg">
-                <div class="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-3 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                    </svg>
-                    <span>Snippets</span>
-                    <span id="snippets-count-badge" class="ml-2 px-2 py-0.5 text-xs bg-purple-900/50 text-purple-300 rounded-full">0</span>
-                </div>
-                <svg id="snippets-panel-arrow" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-            </button>
-            
-            <!-- Snippets Panel Content -->
-            <div id="snippets-panel-content" class="hidden mt-2 space-y-1">
-                <div id="snippets-quick-list" class="max-h-48 overflow-y-auto space-y-1">
-                    <!-- Quick snippets will be rendered here -->
-                </div>
-                <div class="border-t border-gray-600 pt-2">
-                    <a href="#" id="manage-snippets-link" class="flex items-center px-3 py-2 text-xs font-medium text-gray-400 hover:text-gray-300 hover:bg-gray-700/30 transition rounded">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
-                        </svg>
-                        Gerenciar Snippets
-                    </a>
-                </div>
-            </div>
-        </div>
-
         <!-- Navigation Section -->
         <div class="flex-grow overflow-y-auto">
             <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">Navegação</h2>
             
-            <!-- Templates Section -->
-            <div class="mb-4">
-                <div class="flex items-center justify-between px-2 py-1 mb-2">
-                    <span class="text-sm font-medium text-gray-400">Templates</span>
-                    <span id="templates-count-badge" class="px-2 py-0.5 text-xs bg-gray-700/50 text-gray-400 rounded-full">0</span>
-                </div>
-                <nav id="template-list-sidebar" class="space-y-1 mb-2 max-h-32 overflow-y-auto">
-                    <!-- Lista de templates será renderizada aqui -->
-                </nav>
-                <a href="#" id="manage-templates-link" class="flex items-center px-2 py-2 text-sm font-medium text-gray-400 hover:text-gray-300 hover:bg-gray-700/50 transition rounded-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
-                    </svg>
-                    Gerenciar Templates
-                </a>
-            </div>
+            <!-- Library Section -->
+            <a href="#" id="manage-templates-link" class="flex items-center px-2 py-2 text-sm font-medium text-gray-400 hover:text-gray-300 hover:bg-gray-700/50 transition rounded-md mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/>
+                </svg>
+                Templates
+            </a>
 
             <!-- Categories -->
             <a href="#" id="manage-categories-link" class="flex items-center px-2 py-2 text-sm font-medium text-gray-400 hover:text-gray-300 hover:bg-gray-700/50 transition rounded-md mb-2">
@@ -127,13 +84,13 @@
                 Categorias
             </a>
 
-            <!-- Recent Documents (placeholder) -->
-            <div class="mt-6">
-                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Recentes</div>
-                <div id="recent-documents-list" class="space-y-1 max-h-24 overflow-y-auto">
-                    <!-- Recent documents will be rendered here -->
-                </div>
-            </div>
+            <!-- Snippets Link -->
+            <a href="#" id="manage-snippets-link" class="flex items-center px-2 py-2 text-sm font-medium text-gray-400 hover:text-gray-300 hover:bg-gray-700/50 transition rounded-md mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+                Snippets
+            </a>
         </div>
     </aside>
 

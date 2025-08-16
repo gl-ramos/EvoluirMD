@@ -20,19 +20,10 @@ const newDocumentBtn = document.getElementById('new-document-btn');
 const newDocumentDropdown = document.getElementById('new-document-dropdown');
 const blankEditorLink = document.getElementById('blank-editor-link');
 const fromTemplateLink = document.getElementById('from-template-link');
-const snippetsPanelToggle = document.getElementById('snippets-panel-toggle');
-const snippetsPanelContent = document.getElementById('snippets-panel-content');
 const headerSearch = document.getElementById('header-search');
 const backToDashboard = document.getElementById('back-to-dashboard');
 const saveAsTemplate = document.getElementById('save-as-template');
 
-// ========================================
-// FUNÇÕES DE NAVEGAÇÃO
-// ========================================
-
-/**
- * Configura os event listeners de navegação
- */
 function setupNavigationListeners() {
     // Link para gerenciamento de templates
     if (manageTemplatesLink) {
@@ -99,14 +90,6 @@ function setupNavigationListeners() {
         });
     }
 
-    // Toggle do painel de snippets
-    if (snippetsPanelToggle) {
-        snippetsPanelToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleSnippetsPanel();
-        });
-    }
-
     // Busca no header
     if (headerSearch) {
         headerSearch.addEventListener('input', handleHeaderSearch);
@@ -139,9 +122,6 @@ function setupNavigationListeners() {
     }
 }
 
-/**
- * Mostra o editor em branco usando o editor unificado
- */
 function showBlankEditor() {
     hideAllStates();
     const editorState = document.getElementById('editor-state');
@@ -156,12 +136,8 @@ function showBlankEditor() {
     }
 
     updateModeIndicator('blank-editor', 'Editor em Branco');
-    updateHeaderForEditor(true);
 }
 
-/**
- * Mostra o estado do editor (para templates)
- */
 function showEditorState() {
     hideAllStates();
     const editorState = document.getElementById('editor-state');
@@ -171,12 +147,8 @@ function showEditorState() {
     }
 
     updateModeIndicator('template', 'Editor de Template');
-    updateHeaderForEditor(true);
 }
 
-/**
- * Renderiza templates rápidos no dropdown
- */
 function toggleDropdown() {
     if (newDocumentDropdown) {
         const isHidden = newDocumentDropdown.classList.contains('hidden');
@@ -188,9 +160,6 @@ function toggleDropdown() {
     }
 }
 
-/**
- * Abre o dropdown de novo documento
- */
 function openDropdown() {
     if (newDocumentDropdown) {
         newDocumentDropdown.classList.remove('hidden');
@@ -198,18 +167,12 @@ function openDropdown() {
     }
 }
 
-/**
- * Fecha o dropdown de novo documento
- */
 function closeDropdown() {
     if (newDocumentDropdown) {
         newDocumentDropdown.classList.add('hidden');
     }
 }
 
-/**
- * Renderiza templates rápidos no dropdown
- */
 function renderQuickTemplates() {
     const quickTemplatesList = document.getElementById('quick-templates-list');
     if (!quickTemplatesList) return;
@@ -254,61 +217,6 @@ function renderQuickTemplates() {
     });
 }
 
-/**
- * Toggle do painel de snippets
- */
-function toggleSnippetsPanel() {
-    if (snippetsPanelContent) {
-        const isHidden = snippetsPanelContent.classList.contains('hidden');
-        const arrow = document.getElementById('snippets-panel-arrow');
-        
-        if (isHidden) {
-            snippetsPanelContent.classList.remove('hidden');
-            if (arrow) arrow.style.transform = 'rotate(180deg)';
-            renderQuickSnippets();
-        } else {
-            snippetsPanelContent.classList.add('hidden');
-            if (arrow) arrow.style.transform = 'rotate(0deg)';
-        }
-    }
-}
-
-/**
- * Renderiza snippets rápidos no painel
- */
-function renderQuickSnippets() {
-    const snippetsQuickList = document.getElementById('snippets-quick-list');
-    if (!snippetsQuickList) return;
-
-    snippetsQuickList.innerHTML = '';
-
-    if (!window.snippets || Object.keys(window.snippets).length === 0) {
-        snippetsQuickList.innerHTML = '<div class="text-xs text-gray-500 px-3 py-2">Nenhum snippet criado</div>';
-        return;
-    }
-
-    Object.entries(window.snippets).forEach(([key, snippet]) => {
-        const item = document.createElement('div');
-        item.className = 'snippets-panel-item';
-        item.innerHTML = `
-            <div class="snippet-trigger">${key}</div>
-            <div class="snippet-desc">${snippet.description}</div>
-        `;
-        
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            insertSnippetDirectly(key);
-        });
-        
-        snippetsQuickList.appendChild(item);
-    });
-}
-
-/**
- * Foca no primeiro placeholder de um conjunto específico de elementos
- * @param {DocumentFragment} insertedFragment - Fragmento inserido contendo placeholders
- */
 function focusFirstNewPlaceholder(insertedFragment) {
     // Se o fragmento foi inserido, precisamos buscar os placeholders no DOM
     // Vamos procurar pelos placeholders mais recentemente inseridos
@@ -351,100 +259,6 @@ function focusFirstNewPlaceholder(insertedFragment) {
     }, 10);
 }
 
-/**
- * Insere um snippet diretamente no editor ativo
- */
-function insertSnippetDirectly(key) {
-    if (!window.snippets || !window.snippets[key]) return;
-
-    const snippet = window.snippets[key];
-    const activeEditor = getActiveEditor();
-    
-    if (activeEditor) {
-        activeEditor.focus();
-        const selection = window.getSelection();
-        
-        // Processa placeholders no conteúdo do snippet
-        const contentWithPlaceholders = window.processSnippetPlaceholders 
-            ? window.processSnippetPlaceholders(snippet.content) 
-            : snippet.content;
-        
-        if (selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            
-            // Verifica se o conteúdo tem placeholders
-            if (contentWithPlaceholders.includes('<span class="placeholder"')) {
-                // Se tem placeholders, insere como HTML usando createContextualFragment para preservar ordem
-                const fragment = range.createContextualFragment(contentWithPlaceholders);
-                range.insertNode(fragment);
-                
-                // Posiciona o cursor após o conteúdo inserido
-                range.collapse(false);
-                selection.removeAllRanges();
-                selection.addRange(range);
-                
-                // Após inserir, foca no primeiro placeholder se existir
-                setTimeout(() => {
-                    focusFirstNewPlaceholder(fragment);
-                }, 50);
-            } else {
-                // Se não tem placeholders, insere como texto simples
-                const textNode = document.createTextNode(snippet.content);
-                range.insertNode(textNode);
-                
-                // Position cursor after inserted content
-                range.setStartAfter(textNode);
-                range.collapse(true);
-                selection.removeAllRanges();
-                selection.addRange(range);
-            }
-        } else {
-            // Create a new range at the end of the editor content
-            const range = document.createRange();
-            
-            // If editor has content, add to end, otherwise add as first content
-            if (activeEditor.childNodes.length > 0) {
-                range.selectNodeContents(activeEditor);
-                range.collapse(false); // Collapse to end
-            } else {
-                range.setStart(activeEditor, 0);
-                range.collapse(true);
-            }
-            
-            // Verifica se o conteúdo tem placeholders
-            if (contentWithPlaceholders.includes('<span class="placeholder"')) {
-                // Se tem placeholders, insere como HTML usando createContextualFragment para preservar ordem
-                const fragment = range.createContextualFragment(contentWithPlaceholders);
-                range.insertNode(fragment);
-                
-                // Posiciona o cursor após o conteúdo inserido
-                range.collapse(false);
-                selection.removeAllRanges();
-                selection.addRange(range);
-                
-                // Após inserir, foca no primeiro placeholder se existir
-                setTimeout(() => {
-                    focusFirstNewPlaceholder(fragment);
-                }, 50);
-            } else {
-                // Se não tem placeholders, insere como texto simples
-                const textNode = document.createTextNode(snippet.content);
-                range.insertNode(textNode);
-                
-                // Position cursor after inserted content
-                range.setStartAfter(textNode);
-                range.collapse(true);
-                selection.removeAllRanges();
-                selection.addRange(range);
-            }
-        }
-    }
-}
-
-/**
- * Retorna o editor ativo atual
- */
 function getActiveEditor() {
     const editorContent = document.getElementById('editor-content');
     const editorState = document.getElementById('editor-state');
@@ -456,9 +270,6 @@ function getActiveEditor() {
     return null;
 }
 
-/**
- * Manipula busca no header
- */
 function handleHeaderSearch(e) {
     const query = e ? e.target.value.trim() : headerSearch.value.trim();
     const clearBtn = document.getElementById('clear-search');
@@ -480,9 +291,6 @@ function handleHeaderSearch(e) {
     }
 }
 
-/**
- * Atualiza o indicador de modo no header
- */
 function updateModeIndicator(mode, text) {
     const modeIcon = document.getElementById('mode-icon');
     const modeText = document.getElementById('mode-text');
@@ -498,52 +306,17 @@ function updateModeIndicator(mode, text) {
     }
 }
 
-/**
- * Atualiza o header baseado no contexto do editor
- */
-function updateHeaderForEditor(isEditor = false) {
-    const exportButton = document.getElementById('export-button');
-    const headerSnippetCounter = document.getElementById('header-snippet-counter');
-    
-    if (isEditor) {
-        if (exportButton) exportButton.classList.remove('hidden');
-        if (headerSnippetCounter) {
-            headerSnippetCounter.classList.remove('hidden');
-            updateSnippetCounter();
-        }
-    } else {
-        if (exportButton) exportButton.classList.add('hidden');
-        if (headerSnippetCounter) headerSnippetCounter.classList.add('hidden');
-    }
-}
-
-/**
- * Atualiza contadores de snippets e templates
- */
 function updateSnippetCounter() {
     const snippetCount = window.snippets ? Object.keys(window.snippets).length : 0;
     const headerSnippetCount = document.getElementById('header-snippet-count');
-    const snippetsCountBadge = document.getElementById('snippets-count-badge');
     
     if (headerSnippetCount) {
         headerSnippetCount.textContent = snippetCount;
     }
-    
-    if (snippetsCountBadge) {
-        snippetsCountBadge.textContent = snippetCount;
-    }
 }
 
-/**
- * Atualiza contador de templates
- */
 function updateTemplateCounter() {
     const templateCount = window.templates ? Object.keys(window.templates).length : 0;
-    const templatesCountBadge = document.getElementById('templates-count-badge');
-    
-    if (templatesCountBadge) {
-        templatesCountBadge.textContent = templateCount;
-    }
 }
 
 /**
@@ -661,7 +434,6 @@ function navigateToSection(section) {
                 window.showDefaultState();
             }
             updateModeIndicator('dashboard', 'Dashboard');
-            updateHeaderForEditor(false);
             // Remove estado ativo de todos os links
             document.querySelectorAll('.nav-link, .template-link').forEach(link => {
                 link.classList.remove('active', 'bg-gray-700', 'bg-blue-600');
@@ -681,11 +453,9 @@ window.activateLink = activateLink;
 window.navigateToSection = navigateToSection;
 window.showBlankEditor = showBlankEditor;
 window.updateModeIndicator = updateModeIndicator;
-window.updateHeaderForEditor = updateHeaderForEditor;
 window.updateSnippetCounter = updateSnippetCounter;
 window.updateTemplateCounter = updateTemplateCounter;
 window.hideAllStates = hideAllStates;
-window.renderQuickSnippets = renderQuickSnippets;
 
 // Exporta funções para uso em outros módulos
 export {
@@ -695,9 +465,12 @@ export {
     navigateToSection,
     showBlankEditor,
     updateModeIndicator,
-    updateHeaderForEditor,
     updateSnippetCounter,
     updateTemplateCounter,
-    hideAllStates,
-    renderQuickSnippets
+    hideAllStates
 };
+
+// Inicializa os listeners quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+    // A inicialização agora é feita em app.js
+});
