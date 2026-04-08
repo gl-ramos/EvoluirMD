@@ -190,10 +190,10 @@ function handleSaveSnippet(e) {
     const description = document.getElementById('snippet-desc-input').value.trim();
     const content = document.getElementById('snippet-content-input').value.trim();
     
-    // Valida se a chave começa com /
-    if (!newKey.startsWith('/')) {
+    // Valida formato da chave (/ + ao menos 2 caracteres sem espaços)
+    if (!/^\/\S{2,}$/.test(newKey)) {
         if (window.showAppNotification) {
-            window.showAppNotification('O atalho do snippet deve começar com "/".', 'error');
+            window.showAppNotification('Use um atalho válido no formato "/nome" (mínimo 3 caracteres, sem espaços).', 'error');
         }
         return;
     }
