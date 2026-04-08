@@ -306,15 +306,16 @@ function getCurrentCursorPosition() {
 }
 
 /**
- * Obtém posições espaciais de todos os placeholders
+ * Obtém metadados de placeholders (incluindo posição visual e ordem textual)
  * @param {Array} placeholders - Array de elementos placeholder
  * @returns {Array} - Array de objetos com elemento e posição
  */
 function getPlaceholderSpatialPositions(placeholders) {
-    return placeholders.map(placeholder => {
+    return placeholders.map((placeholder, index) => {
         const rect = placeholder.getBoundingClientRect();
         return {
             element: placeholder,
+            index,
             x: rect.left,
             y: rect.top,
             width: rect.width,
@@ -326,180 +327,75 @@ function getPlaceholderSpatialPositions(placeholders) {
 }
 
 /**
- * Encontra o placeholder mais próximo baseado na posição do cursor e direção
+ * Encontra próximo/anterior placeholder respeitando a ordem textual do documento.
+ * Se o cursor estiver entre placeholders, usa esse ponto para decidir.
  * @param {Object} cursorPos - Posição atual do cursor
- * @param {Array} placeholdersWithPos - Array de placeholders com posições
+ * @param {Array} placeholdersWithPos - Array de placeholders com metadados
  * @param {string} direction - 'forward' para Tab, 'backward' para Shift+Tab
- * @returns {Object|null} - Objeto do placeholder mais próximo ou null
+ * @returns {Object|null} - Objeto do placeholder alvo ou null
  */
 function findNearestPlaceholder(cursorPos, placeholdersWithPos, direction) {
-    if (!cursorPos || placeholdersWithPos.length === 0) {
+    if (!placeholdersWithPos || placeholdersWithPos.length === 0) {
         return null;
     }
-    
-    // Se o cursor está dentro de um placeholder, ajusta a lógica
-    let currentPlaceholder = null;
-    if (cursorPos.insidePlaceholder) {
-        currentPlaceholder = cursorPos.insidePlaceholder;
-        
-        // Para navegação quando dentro de placeholder, exclui o placeholder atual
-        const filteredPlaceholders = placeholdersWithPos.filter(p => p.element !== currentPlaceholder);
-        
-        if (filteredPlaceholders.length === 0) {
-            return null;
+
+    const placeholders = placeholdersWithPos
+        .map(p => p?.element || p)
+        .filter(Boolean);
+
+    if (placeholders.length === 0) {
+        return null;
+    }
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+        const fallback = direction === 'backward'
+            ? placeholders[placeholders.length - 1]
+            : placeholders[0];
+        return placeholdersWithPos.find(p => (p.element || p) === fallback) || null;
+    }
+
+    const caretRange = selection.getRangeAt(0).cloneRange();
+    caretRange.collapse(true);
+
+    const currentPlaceholder = cursorPos?.insidePlaceholder || null;
+    if (currentPlaceholder) {
+        const currentIndex = placeholders.indexOf(currentPlaceholder);
+        if (currentIndex !== -1) {
+            const targetIndex = direction === 'backward'
+                ? (currentIndex - 1 + placeholders.length) % placeholders.length
+                : (currentIndex + 1) % placeholders.length;
+
+            const target = placeholders[targetIndex];
+            return placeholdersWithPos.find(p => (p.element || p) === target) || null;
         }
-        
-        // Usa a posição do placeholder atual como referência
-        const placeholderRect = cursorPos.placeholderRect;
-        
-        if (direction === 'forward') {
-            // Tab: próximo placeholder após o atual
-            
-            // 1. Procura placeholders à direita na mesma linha
-            const rightOnSameLine = filteredPlaceholders.filter(p => {
-                const sameLine = Math.abs(p.y - placeholderRect.top) <= placeholderRect.height;
-                const toRight = p.x > placeholderRect.right || (p.x > placeholderRect.left && p.centerX > placeholderRect.left + placeholderRect.width);
-                return sameLine && toRight;
-            });
-            
-            if (rightOnSameLine.length > 0) {
-                const closest = rightOnSameLine.reduce((closest, current) => 
-                    Math.abs(current.x - placeholderRect.right) < Math.abs(closest.x - placeholderRect.right) ? current : closest
-                );
-                return closest;
-            }
-            
-            // 2. Procura primeira ocorrência nas linhas abaixo
-            const belowLines = filteredPlaceholders.filter(p => p.y > placeholderRect.bottom);
-            if (belowLines.length > 0) {
-                const sortedByY = belowLines.sort((a, b) => a.y - b.y);
-                const firstLineY = sortedByY[0].y;
-                const firstLine = sortedByY.filter(p => Math.abs(p.y - firstLineY) <= placeholderRect.height);
-                
-                const leftmost = firstLine.reduce((leftmost, current) => 
-                    current.x < leftmost.x ? current : leftmost
-                );
-                return leftmost;
-            }
-            
-            // 3. Wrap: primeiro placeholder do documento
-            const first = filteredPlaceholders.reduce((first, current) => 
-                current.y < first.y || (current.y === first.y && current.x < first.x) ? current : first
-            );
-            return first;
-            
+    }
+
+    // Primeiro placeholder cuja posição inicial vem depois do cursor
+    const firstAfterCaretIndex = placeholders.findIndex((placeholder) => {
+        const placeholderRange = document.createRange();
+        placeholderRange.selectNode(placeholder);
+        return caretRange.compareBoundaryPoints(Range.START_TO_START, placeholderRange) < 0;
+    });
+
+    let target;
+    if (direction === 'backward') {
+        if (firstAfterCaretIndex === -1) {
+            target = placeholders[placeholders.length - 1];
+        } else if (firstAfterCaretIndex === 0) {
+            target = placeholders[placeholders.length - 1]; // wrap
         } else {
-            // Shift+Tab: placeholder anterior ao atual
-            
-            // 1. Procura placeholders à esquerda na mesma linha
-            const leftOnSameLine = filteredPlaceholders.filter(p => {
-                const sameLine = Math.abs(p.y - placeholderRect.top) <= placeholderRect.height;
-                const toLeft = p.x < placeholderRect.left || (p.x < placeholderRect.right && p.centerX < placeholderRect.right);
-                return sameLine && toLeft;
-            });
-            
-            if (leftOnSameLine.length > 0) {
-                const closest = leftOnSameLine.reduce((closest, current) => 
-                    Math.abs(current.x - placeholderRect.left) < Math.abs(closest.x - placeholderRect.left) ? current : closest
-                );
-                return closest;
-            }
-            
-            // 2. Procura última ocorrência nas linhas acima
-            const aboveLines = filteredPlaceholders.filter(p => p.y < placeholderRect.top);
-            if (aboveLines.length > 0) {
-                const sortedByY = aboveLines.sort((a, b) => b.y - a.y);
-                const lastLineY = sortedByY[0].y;
-                const lastLine = sortedByY.filter(p => Math.abs(p.y - lastLineY) <= placeholderRect.height);
-                
-                const rightmost = lastLine.reduce((rightmost, current) => 
-                    current.x > rightmost.x ? current : rightmost
-                );
-                return rightmost;
-            }
-            
-            // 3. Wrap: último placeholder do documento
-            const last = filteredPlaceholders.reduce((last, current) => 
-                current.y > last.y || (current.y === last.y && current.x > last.x) ? current : last
-            );
-            return last;
+            target = placeholders[firstAfterCaretIndex - 1];
         }
-    }
-    
-    // Lógica original quando cursor não está em placeholder
-    const lineHeight = cursorPos.height || 20;
-    const tolerance = lineHeight * 0.6;
-    
-    if (direction === 'forward') {
-        const rightOnSameLine = placeholdersWithPos.filter(p => {
-            const sameLine = Math.abs(p.y - cursorPos.y) <= tolerance;
-            const toRight = p.x > cursorPos.x;
-            return sameLine && toRight;
-        });
-        
-        if (rightOnSameLine.length > 0) {
-            const closest = rightOnSameLine.reduce((closest, current) => 
-                Math.abs(current.x - cursorPos.x) < Math.abs(closest.x - cursorPos.x) ? current : closest
-            );
-            return closest;
-        }
-        
-        const belowLines = placeholdersWithPos.filter(p => {
-            const below = p.y > cursorPos.y + tolerance;
-            return below;
-        });
-        
-        if (belowLines.length > 0) {
-            const sortedByY = belowLines.sort((a, b) => a.y - b.y);
-            const firstLineY = sortedByY[0].y;
-            const firstLine = sortedByY.filter(p => Math.abs(p.y - firstLineY) <= tolerance);
-            
-            const leftmost = firstLine.reduce((leftmost, current) => 
-                current.x < leftmost.x ? current : leftmost
-            );
-            return leftmost;
-        }
-        
-        const first = placeholdersWithPos.reduce((first, current) => 
-            current.y < first.y || (current.y === first.y && current.x < first.x) ? current : first
-        );
-        return first;
-        
     } else {
-        const leftOnSameLine = placeholdersWithPos.filter(p => {
-            const sameLine = Math.abs(p.y - cursorPos.y) <= tolerance;
-            const toLeft = p.x < cursorPos.x;
-            return sameLine && toLeft;
-        });
-        
-        if (leftOnSameLine.length > 0) {
-            const closest = leftOnSameLine.reduce((closest, current) => 
-                Math.abs(current.x - cursorPos.x) < Math.abs(closest.x - cursorPos.x) ? current : closest
-            );
-            return closest;
+        if (firstAfterCaretIndex === -1) {
+            target = placeholders[0]; // wrap
+        } else {
+            target = placeholders[firstAfterCaretIndex];
         }
-        
-        const aboveLines = placeholdersWithPos.filter(p => {
-            const above = p.y < cursorPos.y - tolerance;
-            return above;
-        });
-        
-        if (aboveLines.length > 0) {
-            const sortedByY = aboveLines.sort((a, b) => b.y - a.y);
-            const lastLineY = sortedByY[0].y;
-            const lastLine = sortedByY.filter(p => Math.abs(p.y - lastLineY) <= tolerance);
-            
-            const rightmost = lastLine.reduce((rightmost, current) => 
-                current.x > rightmost.x ? current : rightmost
-            );
-            return rightmost;
-        }
-        
-        const last = placeholdersWithPos.reduce((last, current) => 
-            current.y > last.y || (current.y === last.y && current.x > last.x) ? current : last
-        );
-        return last;
     }
+
+    return placeholdersWithPos.find(p => (p.element || p) === target) || null;
 }
 
 /**
@@ -646,16 +542,17 @@ function handleTabNavigation(e) {
         return;
     }
 
-    const navigablePlaceholders = Array.from(activeEditor.querySelectorAll('.placeholder:not([data-skipped="true"])'));
-    if (navigablePlaceholders.length === 0) {
-        return;
-    }
-
     // Placeholder atual baseado no cursor real (com fallback para .active)
     const currentPlaceholder = getCurrentPlaceholder(activeEditor);
 
     // Atualiza estado do campo atual antes de decidir o próximo
     updatePlaceholderStateOnExit(currentPlaceholder);
+
+    // Recoleta placeholders após possível integração do campo atual ao texto comum
+    const navigablePlaceholders = Array.from(activeEditor.querySelectorAll('.placeholder:not([data-skipped="true"])'));
+    if (navigablePlaceholders.length === 0) {
+        return;
+    }
 
     // Usa a posição atual do cursor para decidir o próximo/anterior
     const cursorPos = getCurrentCursorPosition();
