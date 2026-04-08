@@ -41,6 +41,7 @@ const importDataInput = document.getElementById('import-data-input');
 const settingsMenuBtn = document.getElementById('settings-menu-btn');
 const settingsMenuDropdown = document.getElementById('settings-menu-dropdown');
 const settingsMenuWrapper = document.getElementById('settings-menu-wrapper');
+const settingsMenuArrow = document.getElementById('settings-menu-arrow');
 
 let confirmModalOnConfirm = null;
 let confirmModalOnCancel = null;
@@ -325,6 +326,7 @@ function openSettingsMenu() {
 
     settingsMenuDropdown.classList.remove('hidden');
     settingsMenuBtn?.setAttribute('aria-expanded', 'true');
+    settingsMenuArrow?.classList.add('rotate-180');
 
     const firstItem = settingsMenuDropdown.querySelector('[role="menuitem"]');
     firstItem?.focus();
@@ -335,6 +337,7 @@ function closeSettingsMenu() {
 
     settingsMenuDropdown.classList.add('hidden');
     settingsMenuBtn?.setAttribute('aria-expanded', 'false');
+    settingsMenuArrow?.classList.remove('rotate-180');
 }
 
 function renderQuickTemplates() {

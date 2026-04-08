@@ -112,11 +112,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.277c.066.39.32.722.675.889.354.167.77.147 1.108-.053l1.104-.653a1.125 1.125 0 011.41.17l1.833 1.833c.39.39.457.997.17 1.41l-.653 1.104a1.125 1.125 0 00-.053 1.108c.167.354.5.609.889.675l1.277.213c.542.09.94.56.94 1.11v2.592c0 .55-.398 1.02-.94 1.11l-1.277.213a1.125 1.125 0 00-.889.675 1.125 1.125 0 00.053 1.108l.653 1.104a1.125 1.125 0 01-.17 1.41l-1.833 1.833a1.125 1.125 0 01-1.41.17l-1.104-.653a1.125 1.125 0 00-1.108-.053 1.125 1.125 0 00-.675.889l-.213 1.277c-.09.542-.56.94-1.11.94h-2.592a1.125 1.125 0 01-1.11-.94l-.213-1.277a1.125 1.125 0 00-.675-.889 1.125 1.125 0 00-1.108.053l-1.104.653a1.125 1.125 0 01-1.41-.17L3.396 19.77a1.125 1.125 0 01-.17-1.41l.653-1.104c.2-.338.22-.754.053-1.108a1.125 1.125 0 00-.889-.675l-1.277-.213a1.125 1.125 0 01-.94-1.11v-2.592c0-.55.398-1.02.94-1.11l1.277-.213c.39-.066.722-.32.889-.675a1.125 1.125 0 00-.053-1.108L3.226 7.36a1.125 1.125 0 01.17-1.41L5.23 4.117a1.125 1.125 0 011.41-.17l1.104.653c.338.2.754.22 1.108.053.354-.167.609-.5.675-.889l.213-1.277z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15.75A3.75 3.75 0 1012 8.25a3.75 3.75 0 000 7.5z"/>
                         </svg>
-                        <span>Configurações</span>
-                        <span class="ml-auto text-xs text-gray-500">▾</span>
+                        <span>Backup</span>
+                        <span id="settings-menu-arrow" class="ml-auto text-xs text-gray-500 transition-transform duration-200">▾</span>
                     </button>
 
-                    <div id="settings-menu-dropdown" role="menu" aria-label="Configurações" class="hidden absolute left-0 right-0 top-full mt-2 bg-[#2D2D2D] border border-gray-600 rounded-lg shadow-xl z-50 p-2 space-y-1">
+                    <div id="settings-menu-dropdown" role="menu" aria-label="Backup" class="hidden absolute left-0 right-0 top-full mt-2 bg-[#2D2D2D] border border-gray-600 rounded-lg shadow-xl z-50 p-2 space-y-1">
                         <button id="export-data-btn" type="button" role="menuitem" class="w-full text-left px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700/60 rounded-md transition">Exportar JSON</button>
                         <button id="import-data-btn" type="button" role="menuitem" class="w-full text-left px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700/60 rounded-md transition">Importar JSON</button>
                         <button id="reset-data-btn" type="button" role="menuitem" class="w-full text-left px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-500/20 rounded-md transition">Restaurar Padrões</button>
