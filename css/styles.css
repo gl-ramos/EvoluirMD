@@ -574,6 +574,28 @@ textarea:focus-visible {
     }
 }
 
+/* Empty states com CTA */
+.empty-state-card {
+    background: rgba(31, 41, 55, 0.45);
+    border: 1px dashed rgba(107, 114, 128, 0.6);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    color: #D1D5DB;
+}
+
+.empty-state-card p {
+    margin: 0 0 10px 0;
+}
+
+.empty-state-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
 /* Dashboard Search Bar Animations */
 #template-search:focus + svg {
     color: #3B82F6;

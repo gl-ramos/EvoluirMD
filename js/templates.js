@@ -38,25 +38,55 @@ function renderRecentTemplates() {
     const recentGrid = document.getElementById('recent-templates-grid');
     const noRecentDiv = document.getElementById('no-recent-templates');
     const recentSection = document.getElementById('recent-templates-section');
-    
+
     if (!recentGrid || !noRecentDiv || !recentSection) return;
-    
+
     const recentTemplates = window.getRecentlyUsedTemplates ? window.getRecentlyUsedTemplates(6) : [];
-    
+    const hasAnyTemplates = window.templates && Object.keys(window.templates).length > 0;
+
     if (recentTemplates.length === 0) {
         recentGrid.innerHTML = '';
+        recentSection.classList.remove('hidden');
         noRecentDiv.classList.remove('hidden');
-        recentSection.classList.add('hidden');
+
+        noRecentDiv.innerHTML = hasAnyTemplates
+            ? `
+                <div class="empty-state-card">
+                    <p>Você ainda não usou nenhum template recentemente.</p>
+                    <div class="empty-state-actions">
+                        <button id="explore-all-templates-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Explorar Templates</button>
+                    </div>
+                </div>
+            `
+            : `
+                <div class="empty-state-card">
+                    <p>Você ainda não possui templates. Crie seu primeiro template para começar.</p>
+                    <div class="empty-state-actions">
+                        <button id="create-first-template-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Primeiro Template</button>
+                    </div>
+                </div>
+            `;
+
+        noRecentDiv.querySelector('#explore-all-templates-btn')?.addEventListener('click', () => {
+            document.getElementById('all-templates-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        noRecentDiv.querySelector('#create-first-template-btn')?.addEventListener('click', () => {
+            if (window.openTemplateModal) {
+                window.openTemplateModal();
+            }
+        });
+
         return;
     }
-    
+
     recentSection.classList.remove('hidden');
     noRecentDiv.classList.add('hidden');
-    
+
     recentGrid.innerHTML = recentTemplates
         .map(({ key, template }) => createTemplateCard(key, template, true))
         .join('');
-    
+
     // Adiciona event listeners
     addCardEventListeners(recentGrid);
 }
@@ -92,18 +122,62 @@ function renderCategoryFilter() {
 function renderAllTemplates(filteredTemplates = null) {
     const allGrid = document.getElementById('all-templates-grid');
     const noTemplatesDiv = document.getElementById('no-templates-found');
-    
+
     if (!allGrid || !noTemplatesDiv) return;
-    
+
     const templates = filteredTemplates || window.templates || {};
     const templateEntries = Object.entries(templates);
-    
+
     if (templateEntries.length === 0) {
         allGrid.innerHTML = '';
         noTemplatesDiv.classList.remove('hidden');
+
+        const query = document.getElementById('template-search')?.value?.trim() || '';
+        const categoryId = document.getElementById('category-filter')?.value || '';
+        const isFiltering = Boolean(query || categoryId || document.body.classList.contains('search-active'));
+
+        noTemplatesDiv.innerHTML = isFiltering
+            ? `
+                <div class="empty-state-card">
+                    <p>Nenhum template corresponde aos filtros atuais.</p>
+                    <div class="empty-state-actions">
+                        <button id="clear-template-filters-btn" type="button" class="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg">Limpar Filtros</button>
+                        <button id="create-template-from-empty-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Template</button>
+                    </div>
+                </div>
+            `
+            : `
+                <div class="empty-state-card">
+                    <p>Nenhum template encontrado.</p>
+                    <div class="empty-state-actions">
+                        <button id="create-template-from-empty-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Template</button>
+                    </div>
+                </div>
+            `;
+
+        noTemplatesDiv.querySelector('#create-template-from-empty-btn')?.addEventListener('click', () => {
+            if (window.openTemplateModal) {
+                window.openTemplateModal();
+            }
+        });
+
+        noTemplatesDiv.querySelector('#clear-template-filters-btn')?.addEventListener('click', () => {
+            const searchInput = document.getElementById('template-search');
+            const categoryFilter = document.getElementById('category-filter');
+
+            if (searchInput) searchInput.value = '';
+            if (categoryFilter) categoryFilter.value = '';
+
+            if (window.performSearch) {
+                window.performSearch('', '');
+            } else {
+                renderAllTemplates();
+            }
+        });
+
         return;
     }
-    
+
     noTemplatesDiv.classList.add('hidden');
     
     // Ordena templates por data de criação (mais recentes primeiro)
@@ -359,10 +433,18 @@ function renderTemplatesManagementList() {
     templatesListContainer.innerHTML = '';
 
     if (!window.templates || Object.keys(window.templates).length === 0) {
-        const emptyMessage = document.createElement('p');
-        emptyMessage.className = 'text-gray-400';
-        emptyMessage.textContent = 'Você ainda não criou nenhum template.';
-        templatesListContainer.appendChild(emptyMessage);
+        templatesListContainer.innerHTML = `
+            <div class="empty-state-card">
+                <p>Você ainda não criou nenhum template.</p>
+                <div class="empty-state-actions">
+                    <button id="create-template-management-empty-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Primeiro Template</button>
+                </div>
+            </div>
+        `;
+
+        templatesListContainer.querySelector('#create-template-management-empty-btn')?.addEventListener('click', () => {
+            openTemplateModal();
+        });
         return;
     }
 

@@ -50,10 +50,19 @@ function renderSnippetsList() {
     snippetsListContainer.innerHTML = '';
 
     if (!window.snippets || Object.keys(window.snippets).length === 0) {
-        const emptyMessage = document.createElement('p');
-        emptyMessage.className = 'text-gray-400';
-        emptyMessage.textContent = 'Você ainda não criou nenhum snippet.';
-        snippetsListContainer.appendChild(emptyMessage);
+        snippetsListContainer.innerHTML = `
+            <div class="empty-state-card">
+                <p>Você ainda não criou nenhum snippet.</p>
+                <p class="text-sm text-gray-400">Use snippets para agilizar frases repetitivas no editor.</p>
+                <div class="empty-state-actions">
+                    <button id="create-first-snippet-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Primeiro Snippet</button>
+                </div>
+            </div>
+        `;
+
+        snippetsListContainer.querySelector('#create-first-snippet-btn')?.addEventListener('click', () => {
+            openSnippetModal();
+        });
 
         // Atualiza contador
         if (window.updateSnippetCounter) {

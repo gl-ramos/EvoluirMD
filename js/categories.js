@@ -234,7 +234,18 @@ function renderCategoriesManagementList() {
     const categories = getAllCategories();
     
     if (categories.length === 0) {
-        categoriesListContainer.innerHTML = `<p class="text-gray-400">Nenhuma categoria encontrada.</p>`;
+        categoriesListContainer.innerHTML = `
+            <div class="empty-state-card">
+                <p>Nenhuma categoria encontrada.</p>
+                <div class="empty-state-actions">
+                    <button id="create-first-category-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Primeira Categoria</button>
+                </div>
+            </div>
+        `;
+
+        categoriesListContainer.querySelector('#create-first-category-btn')?.addEventListener('click', () => {
+            openCategoryModal();
+        });
         return;
     }
     
