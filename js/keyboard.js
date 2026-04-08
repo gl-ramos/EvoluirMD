@@ -11,6 +11,8 @@
 // FUNÇÕES DE NAVEGAÇÃO POR TECLADO
 // ========================================
 
+let keyboardListenersInitialized = false;
+
 /**
  * Handler principal para eventos de teclado
  * Gerencia navegação por Tab, Escape, setas e Enter
@@ -531,20 +533,18 @@ function activatePlaceholder(placeholder) {
  * Configura todos os event listeners de teclado
  */
 function setupKeyboardListeners() {
-    // Event listener global para teclado
-    document.addEventListener('keydown', handleKeyboardEvents);
-    
-    // Event listeners específicos para elementos editáveis
-    const editorContent = document.getElementById('editor-content');
-    
-    if (editorContent) {
-        editorContent.addEventListener('keydown', handleKeyboardEvents);
+    if (keyboardListenersInitialized) {
+        return;
     }
-    
-    // Função para configurar listeners em editors que podem ser criados dinamicamente
+
+    // Único listener global para evitar duplicação de eventos
+    document.addEventListener('keydown', handleKeyboardEvents);
+    keyboardListenersInitialized = true;
+
+    // Mantido por compatibilidade com módulos antigos.
+    // Não adiciona novos listeners, apenas marca o elemento.
     window.addKeyboardListenerToElement = function(element) {
         if (element && !element.hasAttribute('data-keyboard-listener')) {
-            element.addEventListener('keydown', handleKeyboardEvents);
             element.setAttribute('data-keyboard-listener', 'true');
         }
     };
