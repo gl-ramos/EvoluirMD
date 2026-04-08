@@ -221,6 +221,16 @@ function validateCategoryData(name, color) {
 }
 
 /**
+ * Normaliza uma cor hexadecimal para formato #RRGGBB em caixa alta
+ * @param {string} value
+ * @returns {string}
+ */
+function normalizeHexColor(value) {
+    const normalized = (value || '').trim().toUpperCase();
+    return /^#[0-9A-F]{6}$/.test(normalized) ? normalized : '';
+}
+
+/**
  * Verifica se uma categoria está sendo usada por templates
  * @param {string} id - ID da categoria
  * @returns {number} Número de templates usando esta categoria
@@ -429,8 +439,22 @@ function handleSaveCategory(e) {
     const name = document.getElementById('category-name-input').value.trim();
     const colorInput = document.getElementById('category-color-input');
     const colorText = document.getElementById('category-color-text');
-    const color = colorInput.value || colorText.value || '#6B7280';
+    const typedColor = normalizeHexColor(colorText?.value);
+    const pickerColor = normalizeHexColor(colorInput?.value) || '#6B7280';
+    const hasTypedColor = Boolean(colorText?.value?.trim());
+    const color = typedColor || pickerColor;
     const originalId = document.getElementById('category-original-id').value;
+
+    if (hasTypedColor && !typedColor) {
+        if (window.showAppNotification) {
+            window.showAppNotification('Use uma cor válida no formato #RRGGBB.', 'error');
+        }
+        return;
+    }
+
+    // Mantém campos sincronizados com o valor final
+    if (colorInput) colorInput.value = color;
+    if (colorText) colorText.value = color;
     
     // Validação
     const errors = validateCategoryData(name, color);
@@ -497,10 +521,16 @@ function setupCategoriesListeners() {
         });
         
         colorText.addEventListener('input', (e) => {
-            const value = e.target.value;
-            if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+            const value = normalizeHexColor(e.target.value);
+            if (value) {
+                e.target.value = value;
                 colorInput.value = value;
             }
+        });
+
+        colorText.addEventListener('blur', (e) => {
+            const typedValue = normalizeHexColor(e.target.value);
+            e.target.value = typedValue || colorInput.value.toUpperCase();
         });
     }
 }
