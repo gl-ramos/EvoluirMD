@@ -147,7 +147,7 @@ function createDefaultTemplates() {
     const now = Date.now();
     const templates = {};
 
-    for (const key in DEFAULT_TEMPLATES) {
+    Object.keys(DEFAULT_TEMPLATES).forEach(key => {
         templates[key] = {
             ...DEFAULT_TEMPLATES[key],
             lastUsed: null,
@@ -155,7 +155,7 @@ function createDefaultTemplates() {
             isFavorite: false,
             createdAt: now
         };
-    }
+    });
 
     return templates;
 }
@@ -221,29 +221,34 @@ function migrateTemplatesFormat() {
     let needsSave = false;
     const now = Date.now();
     
-    for (const key in window.templates) {
+    Object.keys(window.templates).forEach(key => {
         const template = window.templates[key];
-        
+        if (!template || typeof template !== 'object') {
+            delete window.templates[key];
+            needsSave = true;
+            return;
+        }
+
         // Adiciona campos ausentes
-        if (!template.hasOwnProperty('lastUsed')) {
+        if (!Object.prototype.hasOwnProperty.call(template, 'lastUsed')) {
             template.lastUsed = null;
             needsSave = true;
         }
-        if (!template.hasOwnProperty('usageCount')) {
+        if (!Object.prototype.hasOwnProperty.call(template, 'usageCount')) {
             template.usageCount = 0;
             needsSave = true;
         }
-        if (!template.hasOwnProperty('isFavorite')) {
+        if (!Object.prototype.hasOwnProperty.call(template, 'isFavorite')) {
             template.isFavorite = false;
             needsSave = true;
         }
-        if (!template.hasOwnProperty('createdAt')) {
+        if (!Object.prototype.hasOwnProperty.call(template, 'createdAt')) {
             template.createdAt = now;
             needsSave = true;
         }
         
         // Migra categoria do formato antigo (string) para novo formato (categoryId)
-        if (template.hasOwnProperty('category') && !template.hasOwnProperty('categoryId')) {
+        if (Object.prototype.hasOwnProperty.call(template, 'category') && !Object.prototype.hasOwnProperty.call(template, 'categoryId')) {
             // Mapeia nomes antigos para IDs novos
             const categoryMap = createCategoryMapping();
             template.categoryId = categoryMap[template.category] || 'geral';
@@ -251,11 +256,11 @@ function migrateTemplatesFormat() {
             needsSave = true;
         }
         
-        if (!template.hasOwnProperty('categoryId')) {
+        if (!Object.prototype.hasOwnProperty.call(template, 'categoryId')) {
             template.categoryId = 'geral';
             needsSave = true;
         }
-    }
+    });
     
     if (needsSave) {
         saveTemplatesToStorage();
@@ -271,23 +276,28 @@ function migrateCategoriesFormat() {
     let needsSave = false;
     const now = Date.now();
     
-    for (const id in window.categories) {
+    Object.keys(window.categories).forEach(id => {
         const category = window.categories[id];
-        
+        if (!category || typeof category !== 'object') {
+            delete window.categories[id];
+            needsSave = true;
+            return;
+        }
+
         // Adiciona campos ausentes
-        if (!category.hasOwnProperty('id')) {
+        if (!Object.prototype.hasOwnProperty.call(category, 'id')) {
             category.id = id;
             needsSave = true;
         }
-        if (!category.hasOwnProperty('createdAt')) {
+        if (!Object.prototype.hasOwnProperty.call(category, 'createdAt')) {
             category.createdAt = now;
             needsSave = true;
         }
-        if (!category.hasOwnProperty('isDefault')) {
+        if (!Object.prototype.hasOwnProperty.call(category, 'isDefault')) {
             category.isDefault = false;
             needsSave = true;
         }
-    }
+    });
     
     if (needsSave) {
         saveCategoriesToStorage();
@@ -374,35 +384,216 @@ function exportDataAsJson() {
 }
 
 /**
+ * Verifica se um valor é um objeto simples (não-array)
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function isPlainObject(value) {
+    return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * Evita chaves perigosas que podem levar a prototype pollution
+ * @param {string} key
+ * @returns {boolean}
+ */
+function isSafeObjectKey(key) {
+    return Boolean(key) && !['__proto__', 'prototype', 'constructor'].includes(key);
+}
+
+/**
+ * Normaliza string importada com limite de tamanho
+ * @param {unknown} value
+ * @param {number} maxLength
+ * @param {string} fallback
+ * @returns {string}
+ */
+function safeString(value, maxLength = 5000, fallback = '') {
+    if (typeof value !== 'string') return fallback;
+    return value.slice(0, maxLength);
+}
+
+/**
+ * Sanitiza cor hexadecimal para formato #RRGGBB
+ * @param {unknown} value
+ * @param {string} fallback
+ * @returns {string}
+ */
+function safeHexColor(value, fallback = '#6B7280') {
+    const normalized = safeString(value, 7, '').trim().toUpperCase();
+    return /^#[0-9A-F]{6}$/.test(normalized) ? normalized : fallback;
+}
+
+/**
+ * Sanitiza ID para formato slug
+ * @param {unknown} value
+ * @param {string} fallback
+ * @returns {string}
+ */
+function safeSlug(value, fallback = '') {
+    const slug = safeString(value, 80, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+
+    return slug || fallback;
+}
+
+/**
+ * Converte para timestamp válido
+ * @param {unknown} value
+ * @param {number|null} fallback
+ * @returns {number|null}
+ */
+function safeTimestamp(value, fallback = null) {
+    if (value === null && fallback === null) return null;
+
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric) || numeric <= 0) {
+        return fallback;
+    }
+
+    return Math.trunc(numeric);
+}
+
+/**
+ * Sanitiza categorias importadas
+ * @param {Object} rawCategories
+ * @returns {Object}
+ */
+function sanitizeImportedCategories(rawCategories) {
+    const sanitized = {};
+
+    Object.entries(rawCategories).forEach(([rawKey, rawCategory]) => {
+        if (!isSafeObjectKey(rawKey) || !isPlainObject(rawCategory)) return;
+
+        const id = safeSlug(rawCategory.id ?? rawKey);
+        if (!id || !isSafeObjectKey(id)) return;
+
+        const name = safeString(rawCategory.name, 50, '').trim();
+        if (!name) return;
+
+        sanitized[id] = {
+            id,
+            name,
+            color: safeHexColor(rawCategory.color, '#6B7280'),
+            isDefault: Boolean(rawCategory.isDefault),
+            createdAt: safeTimestamp(rawCategory.createdAt, Date.now())
+        };
+    });
+
+    if (!sanitized.geral) {
+        sanitized.geral = {
+            id: 'geral',
+            name: 'Geral',
+            color: '#6B7280',
+            isDefault: true,
+            createdAt: Date.now()
+        };
+    }
+
+    return sanitized;
+}
+
+/**
+ * Sanitiza snippets importados
+ * @param {Object} rawSnippets
+ * @returns {Object}
+ */
+function sanitizeImportedSnippets(rawSnippets) {
+    const sanitized = {};
+
+    Object.entries(rawSnippets).forEach(([rawKey, rawSnippet]) => {
+        if (!isSafeObjectKey(rawKey) || !isPlainObject(rawSnippet)) return;
+
+        const key = safeString(rawKey, 64, '').trim();
+        if (!/^\/\S{2,}$/.test(key)) return;
+
+        const description = safeString(rawSnippet.description, 200, '').trim();
+        const content = safeString(rawSnippet.content, 20000, '').trim();
+
+        if (!description || !content) return;
+
+        sanitized[key] = { description, content };
+    });
+
+    return sanitized;
+}
+
+/**
+ * Sanitiza templates importados
+ * @param {Object} rawTemplates
+ * @param {Object} categories
+ * @returns {Object}
+ */
+function sanitizeImportedTemplates(rawTemplates, categories) {
+    const sanitized = {};
+    const allowedCategoryIds = new Set(Object.keys(categories || {}));
+    const categoryMap = createCategoryMapping();
+
+    Object.entries(rawTemplates).forEach(([rawKey, rawTemplate]) => {
+        if (!isSafeObjectKey(rawKey) || !isPlainObject(rawTemplate)) return;
+
+        const key = safeString(rawKey, 120, '').trim();
+        if (!key || !isSafeObjectKey(key)) return;
+
+        const title = safeString(rawTemplate.title, 120, '').trim() || 'Template sem título';
+        const content = safeString(rawTemplate.content, 50000, '');
+        if (!content.trim()) return;
+
+        const mappedLegacyCategory = typeof rawTemplate.category === 'string'
+            ? categoryMap[rawTemplate.category]
+            : '';
+
+        const candidateCategoryId = safeSlug(rawTemplate.categoryId || mappedLegacyCategory || 'geral', 'geral');
+        const categoryId = allowedCategoryIds.has(candidateCategoryId) ? candidateCategoryId : 'geral';
+
+        sanitized[key] = {
+            title,
+            content,
+            lastUsed: safeTimestamp(rawTemplate.lastUsed, null),
+            usageCount: Math.max(0, Math.trunc(Number(rawTemplate.usageCount) || 0)),
+            isFavorite: Boolean(rawTemplate.isFavorite),
+            categoryId,
+            createdAt: safeTimestamp(rawTemplate.createdAt, Date.now())
+        };
+    });
+
+    return sanitized;
+}
+
+/**
  * Normaliza payload bruto de importação
  * @param {Object} rawPayload
  * @returns {Object}
  */
 function normalizeImportPayload(rawPayload) {
-    if (!rawPayload || typeof rawPayload !== 'object') {
+    if (!isPlainObject(rawPayload)) {
         throw new Error('Arquivo inválido. Estrutura JSON não reconhecida.');
     }
 
-    const source = rawPayload.data && typeof rawPayload.data === 'object'
+    const source = isPlainObject(rawPayload.data)
         ? rawPayload.data
         : rawPayload;
 
     const { templates, snippets, categories } = source;
 
-    if (!templates || typeof templates !== 'object' || Array.isArray(templates)) {
+    if (!isPlainObject(templates)) {
         throw new Error('Campo "templates" ausente ou inválido.');
     }
-    if (!snippets || typeof snippets !== 'object' || Array.isArray(snippets)) {
+    if (!isPlainObject(snippets)) {
         throw new Error('Campo "snippets" ausente ou inválido.');
     }
-    if (!categories || typeof categories !== 'object' || Array.isArray(categories)) {
+    if (!isPlainObject(categories)) {
         throw new Error('Campo "categories" ausente ou inválido.');
     }
 
     return {
-        templates: { ...templates },
-        snippets: { ...snippets },
-        categories: { ...categories }
+        templates,
+        snippets,
+        categories
     };
 }
 
@@ -413,9 +604,13 @@ function normalizeImportPayload(rawPayload) {
 function importDataFromJson(payload) {
     const normalized = normalizeImportPayload(payload);
 
-    window.templates = normalized.templates;
-    window.snippets = normalized.snippets;
-    window.categories = normalized.categories;
+    const sanitizedCategories = sanitizeImportedCategories(normalized.categories);
+    const sanitizedSnippets = sanitizeImportedSnippets(normalized.snippets);
+    const sanitizedTemplates = sanitizeImportedTemplates(normalized.templates, sanitizedCategories);
+
+    window.categories = sanitizedCategories;
+    window.snippets = sanitizedSnippets;
+    window.templates = sanitizedTemplates;
 
     migrateTemplatesFormat();
     migrateCategoriesFormat();
