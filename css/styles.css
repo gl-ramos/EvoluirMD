@@ -538,7 +538,7 @@ textarea:focus-visible {
 }
 
 /* Search Results */
-.search-active .recent-templates-section {
+.search-active #recent-templates-section {
     display: none;
 }
 
