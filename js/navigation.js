@@ -23,8 +23,13 @@ const blankEditorLink = document.getElementById('blank-editor-link');
 const fromTemplateLink = document.getElementById('from-template-link');
 const headerSearch = document.getElementById('header-search');
 const clearSearchBtn = document.getElementById('clear-search');
+const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+const appSidebar = document.getElementById('app-sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
 
 function setupNavigationListeners() {
+    setupSidebarListeners();
+
     // Link para gerenciamento de templates
     if (dashboardLink) {
         dashboardLink.addEventListener('click', (e) => { 
@@ -32,6 +37,7 @@ function setupNavigationListeners() {
             if (window.showDefaultState) {
                 window.showDefaultState(); 
             }
+            closeSidebarOnMobile();
         });
     }
 
@@ -41,6 +47,7 @@ function setupNavigationListeners() {
             if (window.showTemplatesState) {
                 window.showTemplatesState(); 
             }
+            closeSidebarOnMobile();
         });
     }
     
@@ -51,6 +58,7 @@ function setupNavigationListeners() {
             if (window.showCategoriesState) {
                 window.showCategoriesState(); 
             }
+            closeSidebarOnMobile();
         });
     }
     
@@ -61,6 +69,7 @@ function setupNavigationListeners() {
             if (window.showSnippetsState) {
                 window.showSnippetsState(); 
             }
+            closeSidebarOnMobile();
         });
     }
 
@@ -93,6 +102,7 @@ function setupNavigationListeners() {
             e.preventDefault();
             showBlankEditor();
             closeDropdown();
+            closeSidebarOnMobile();
         });
     }
 
@@ -104,6 +114,7 @@ function setupNavigationListeners() {
                 window.showDefaultState();
             }
             closeDropdown();
+            closeSidebarOnMobile();
         });
     }
 
@@ -126,6 +137,67 @@ function setupNavigationListeners() {
         });
     }
 
+}
+
+function setupSidebarListeners() {
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', () => {
+            toggleSidebar();
+        });
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeSidebar();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+            closeSidebar(false);
+        }
+    });
+}
+
+function toggleSidebar() {
+    if (!appSidebar) return;
+    const isOpen = !appSidebar.classList.contains('-translate-x-full');
+
+    if (isOpen) {
+        closeSidebar();
+    } else {
+        openSidebar();
+    }
+}
+
+function openSidebar() {
+    if (!appSidebar) return;
+
+    appSidebar.classList.remove('-translate-x-full');
+    sidebarOverlay?.classList.remove('hidden');
+    sidebarToggleBtn?.setAttribute('aria-expanded', 'true');
+}
+
+function closeSidebar(restoreToggleFocus = false) {
+    if (!appSidebar) return;
+
+    appSidebar.classList.add('-translate-x-full');
+    sidebarOverlay?.classList.add('hidden');
+    sidebarToggleBtn?.setAttribute('aria-expanded', 'false');
+
+    if (restoreToggleFocus) {
+        sidebarToggleBtn?.focus();
+    }
+}
+
+function closeSidebarOnMobile() {
+    if (window.innerWidth < 768) {
+        closeSidebar();
+    }
 }
 
 function showBlankEditor() {
