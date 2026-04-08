@@ -22,6 +22,7 @@ const newDocumentDropdown = document.getElementById('new-document-dropdown');
 const blankEditorLink = document.getElementById('blank-editor-link');
 const fromTemplateLink = document.getElementById('from-template-link');
 const headerSearch = document.getElementById('header-search');
+const clearSearchBtn = document.getElementById('clear-search');
 
 function setupNavigationListeners() {
     // Link para gerenciamento de templates
@@ -109,6 +110,13 @@ function setupNavigationListeners() {
         });
     }
 
+    if (clearSearchBtn && headerSearch) {
+        clearSearchBtn.addEventListener('click', () => {
+            headerSearch.value = '';
+            handleHeaderSearch();
+            headerSearch.focus();
+        });
+    }
 
 }
 
