@@ -52,6 +52,13 @@ function handleKeyboardEvents(e) {
         return;
     }
     
+    // Enter dentro de placeholder: sai do placeholder sem pular para o próximo
+    if (e.key === 'Enter') {
+        if (handleEnterFromPlaceholder(e)) {
+            return;
+        }
+    }
+
     // Navegação por Tab entre placeholders
     if (e.key === 'Tab') {
         // Verifica se estamos dentro de um editor visível
@@ -496,6 +503,107 @@ function findNearestPlaceholder(cursorPos, placeholdersWithPos, direction) {
 }
 
 /**
+ * Obtém o placeholder atual baseado no estado ativo ou posição do cursor
+ * @param {Element} activeEditor
+ * @returns {Element|null}
+ */
+function getCurrentPlaceholder(activeEditor) {
+    let currentPlaceholder = activeEditor.querySelector('.placeholder.active');
+    if (currentPlaceholder) {
+        return currentPlaceholder;
+    }
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+        return null;
+    }
+
+    let node = selection.getRangeAt(0).startContainer;
+    while (node && node !== activeEditor) {
+        if (node.nodeType === Node.ELEMENT_NODE && node.classList?.contains('placeholder')) {
+            return node;
+        }
+        node = node.parentNode;
+    }
+
+    return null;
+}
+
+/**
+ * Atualiza visual/estado de um placeholder ao sair dele
+ * @param {Element|null} placeholder
+ */
+function updatePlaceholderStateOnExit(placeholder) {
+    if (!placeholder) return;
+
+    placeholder.classList.remove('active', 'initial-focus');
+    const originalText = placeholder.dataset.originalText
+        ? placeholder.dataset.originalText
+            .replace(/^\[\[\s*([^\]]+?)\s*\]\]$/, '$1')
+            .replace(/[\[\]]/g, '')
+            .replace(/_/g, ' ')
+        : placeholder.textContent;
+    const currentText = placeholder.textContent.trim();
+
+    if (currentText === '' || currentText === originalText) {
+        placeholder.innerHTML = originalText;
+        placeholder.classList.remove('placeholder-filled');
+        placeholder.removeAttribute('data-skipped');
+    } else {
+        placeholder.classList.add('placeholder-filled');
+        // Placeholders preenchidos saem da navegação por TAB
+        placeholder.setAttribute('data-skipped', 'true');
+    }
+}
+
+/**
+ * Move o cursor para imediatamente após um placeholder
+ * @param {Element} placeholder
+ */
+function moveCaretAfterPlaceholder(placeholder) {
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    const range = document.createRange();
+    range.setStartAfter(placeholder);
+    range.collapse(true);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    const editor = document.getElementById('editor-content');
+    editor?.focus();
+}
+
+/**
+ * Enter dentro de placeholder: conclui o campo e posiciona cursor após ele
+ * @param {KeyboardEvent} e
+ * @returns {boolean} true quando o evento foi tratado
+ */
+function handleEnterFromPlaceholder(e) {
+    const editorContent = document.getElementById('editor-content');
+    const activeEditor = editorContent && !editorContent.closest('#editor-state').classList.contains('hidden')
+        ? editorContent
+        : null;
+
+    if (!activeEditor) return false;
+
+    const target = e.target;
+    const eventFromEditor = target instanceof Node && activeEditor.contains(target);
+    if (!eventFromEditor) return false;
+
+    const currentPlaceholder = getCurrentPlaceholder(activeEditor);
+    if (!currentPlaceholder) return false;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    updatePlaceholderStateOnExit(currentPlaceholder);
+    moveCaretAfterPlaceholder(currentPlaceholder);
+    return true;
+}
+
+/**
  * Gerencia navegação por Tab entre placeholders com consciência de posição do cursor
  * @param {KeyboardEvent} e - Evento de teclado
  */
@@ -516,43 +624,7 @@ function handleTabNavigation(e) {
     }
 
     // Descobre placeholder atual (ativo ou onde está o cursor)
-    let currentPlaceholder = activeEditor.querySelector('.placeholder.active');
-    if (!currentPlaceholder) {
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-            let node = selection.getRangeAt(0).startContainer;
-            while (node && node !== activeEditor) {
-                if (node.nodeType === Node.ELEMENT_NODE && node.classList?.contains('placeholder')) {
-                    currentPlaceholder = node;
-                    break;
-                }
-                node = node.parentNode;
-            }
-        }
-    }
-
-    const updateCurrentPlaceholderState = (placeholder) => {
-        if (!placeholder) return;
-
-        placeholder.classList.remove('active', 'initial-focus');
-        const originalText = placeholder.dataset.originalText
-            ? placeholder.dataset.originalText
-                .replace(/^\[\[\s*([^\]]+?)\s*\]\]$/, '$1')
-                .replace(/[\[\]]/g, '')
-                .replace(/_/g, ' ')
-            : placeholder.textContent;
-        const currentText = placeholder.textContent.trim();
-
-        if (currentText === '' || currentText === originalText) {
-            placeholder.innerHTML = originalText;
-            placeholder.classList.remove('placeholder-filled');
-            placeholder.removeAttribute('data-skipped');
-        } else {
-            placeholder.classList.add('placeholder-filled');
-            // Placeholders preenchidos saem da navegação por TAB
-            placeholder.setAttribute('data-skipped', 'true');
-        }
-    };
+    let currentPlaceholder = getCurrentPlaceholder(activeEditor);
 
     const findNextNavigable = (startIndex, step) => {
         for (let i = startIndex + step; i >= 0 && i < allPlaceholders.length; i += step) {
@@ -565,7 +637,7 @@ function handleTabNavigation(e) {
     };
 
     // Atualiza estado do campo atual antes de decidir o próximo
-    updateCurrentPlaceholderState(currentPlaceholder);
+    updatePlaceholderStateOnExit(currentPlaceholder);
 
     let targetPlaceholder = null;
 
@@ -677,6 +749,7 @@ window.getCurrentCursorPosition = getCurrentCursorPosition;
 window.getPlaceholderSpatialPositions = getPlaceholderSpatialPositions;
 window.findNearestPlaceholder = findNearestPlaceholder;
 window.activatePlaceholder = activatePlaceholder;
+window.handleEnterFromPlaceholder = handleEnterFromPlaceholder;
 
 // Exporta funções para uso em outros módulos
 export {
@@ -689,5 +762,6 @@ export {
     getCurrentCursorPosition,
     getPlaceholderSpatialPositions,
     findNearestPlaceholder,
-    activatePlaceholder
+    activatePlaceholder,
+    handleEnterFromPlaceholder
 };
