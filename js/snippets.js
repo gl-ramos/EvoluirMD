@@ -538,8 +538,16 @@ function handleEditorInput() {
     // Procura por / no texto antes do cursor
     const text = node.textContent.substring(0, offset);
     const triggerIndex = text.lastIndexOf('/');
-    
+
     if (triggerIndex === -1 || text.substring(triggerIndex + 1).includes(' ')) {
+        hideSnippetTooltip();
+        return;
+    }
+
+    // Trigger só é válido no início de uma palavra (evita URLs e barras no meio do texto)
+    const charBeforeTrigger = triggerIndex > 0 ? text[triggerIndex - 1] : '';
+    const isWordBoundary = triggerIndex === 0 || /\s/.test(charBeforeTrigger);
+    if (!isWordBoundary) {
         hideSnippetTooltip();
         return;
     }
