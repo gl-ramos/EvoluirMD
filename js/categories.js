@@ -278,9 +278,10 @@ function renderCategoriesManagementList() {
                     renderCategoriesManagementList();
                     // Atualiza outras renderizações se necessário
                     if (window.renderDashboard) window.renderDashboard();
-                    if (window.renderSidebarTemplates) window.renderSidebarTemplates();
                 } catch (error) {
-                    alert('Erro ao excluir categoria: ' + error.message);
+                    if (window.showAppNotification) {
+                        window.showAppNotification('Erro ao excluir categoria: ' + error.message, 'error');
+                    }
                 }
             }
         })
@@ -372,7 +373,9 @@ function handleSaveCategory(e) {
     // Validação
     const errors = validateCategoryData(name, color);
     if (errors.length > 0) {
-        alert('Erros encontrados:\n' + errors.join('\n'));
+        if (window.showAppNotification) {
+            window.showAppNotification('Erros encontrados: ' + errors.join(' | '), 'error');
+        }
         return;
     }
     
@@ -390,10 +393,15 @@ function handleSaveCategory(e) {
         
         // Atualiza outras renderizações
         if (window.renderDashboard) window.renderDashboard();
-        if (window.renderSidebarTemplates) window.renderSidebarTemplates();
-        
+
+        if (window.showAppNotification) {
+            window.showAppNotification('Categoria salva com sucesso!', 'success');
+        }
+
     } catch (error) {
-        alert('Erro ao salvar categoria: ' + error.message);
+        if (window.showAppNotification) {
+            window.showAppNotification('Erro ao salvar categoria: ' + error.message, 'error');
+        }
     }
 }
 

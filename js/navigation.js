@@ -22,8 +22,6 @@ const newDocumentDropdown = document.getElementById('new-document-dropdown');
 const blankEditorLink = document.getElementById('blank-editor-link');
 const fromTemplateLink = document.getElementById('from-template-link');
 const headerSearch = document.getElementById('header-search');
-const backToDashboard = document.getElementById('back-to-dashboard');
-const saveAsTemplate = document.getElementById('save-as-template');
 
 function setupNavigationListeners() {
     // Link para gerenciamento de templates
@@ -111,25 +109,7 @@ function setupNavigationListeners() {
         });
     }
 
-    // Voltar ao dashboard
-    if (backToDashboard) {
-        backToDashboard.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (window.showDefaultState) {
-                window.showDefaultState();
-            }
-        });
-    }
 
-    // Salvar como template
-    if (saveAsTemplate) {
-        saveAsTemplate.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (window.saveBlankEditorAsTemplate) {
-                window.saveBlankEditorAsTemplate();
-            }
-        });
-    }
 }
 
 function showBlankEditor() {
@@ -209,8 +189,13 @@ function renderQuickTemplates() {
         item.textContent = template.title;
         item.addEventListener('click', (e) => {
             e.preventDefault();
-            if (window.loadTemplate) {
+            if (window.useTemplate) {
+                window.useTemplate(key);
+            } else if (window.loadTemplate) {
                 window.loadTemplate(key);
+                if (window.showEditorState) {
+                    window.showEditorState();
+                }
             }
             closeDropdown();
         });
@@ -261,6 +246,33 @@ function updateSnippetCounter() {
 }
 
 /**
+ * Exibe uma notificação não-bloqueante na interface
+ * @param {string} message - Mensagem a ser exibida
+ * @param {'success'|'error'|'info'} type - Tipo da mensagem
+ */
+function showAppNotification(message, type = 'info') {
+    if (!message) return;
+
+    const colors = {
+        success: 'bg-green-600',
+        error: 'bg-red-600',
+        info: 'bg-blue-600'
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 z-[60] text-white px-4 py-3 rounded-lg shadow-xl border border-white/20 ${colors[type] || colors.info}`;
+    toast.textContent = message;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.transition = 'opacity 0.25s ease';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 250);
+    }, 2500);
+}
+
+/**
  * Configura todos os event listeners da aplicação
  */
 function setupAllListeners() {
@@ -301,6 +313,7 @@ window.setupAllListeners = setupAllListeners;
 window.showBlankEditor = showBlankEditor;
 window.updateModeIndicator = updateModeIndicator;
 window.updateSnippetCounter = updateSnippetCounter;
+window.showAppNotification = showAppNotification;
 
 // Exporta funções para uso em outros módulos
 export {
@@ -308,5 +321,6 @@ export {
     setupAllListeners,
     showBlankEditor,
     updateModeIndicator,
-    updateSnippetCounter
+    updateSnippetCounter,
+    showAppNotification
 };
