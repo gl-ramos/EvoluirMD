@@ -534,38 +534,47 @@ function getCurrentPlaceholder(activeEditor) {
  * @param {Element|null} placeholder
  */
 function updatePlaceholderStateOnExit(placeholder) {
-    if (!placeholder) return;
+    if (!placeholder) return null;
 
     placeholder.classList.remove('active', 'initial-focus');
+
     const originalText = placeholder.dataset.originalText
         ? placeholder.dataset.originalText
             .replace(/^\[\[\s*([^\]]+?)\s*\]\]$/, '$1')
             .replace(/[\[\]]/g, '')
             .replace(/_/g, ' ')
         : placeholder.textContent;
-    const currentText = placeholder.textContent.trim();
 
-    if (currentText === '' || currentText === originalText) {
-        placeholder.innerHTML = originalText;
+    const rawText = placeholder.textContent || '';
+    const trimmedText = rawText.trim();
+    const hasChanged = trimmedText !== '' && trimmedText !== originalText;
+
+    // Só integra ao texto comum quando o conteúdo realmente mudou
+    if (!hasChanged) {
+        placeholder.textContent = originalText;
         placeholder.classList.remove('placeholder-filled');
         placeholder.removeAttribute('data-skipped');
-    } else {
-        placeholder.classList.add('placeholder-filled');
-        // Placeholders preenchidos saem da navegação por TAB
-        placeholder.setAttribute('data-skipped', 'true');
+        return null;
     }
+
+    const plainTextNode = document.createTextNode(rawText);
+    placeholder.replaceWith(plainTextNode);
+
+    return plainTextNode;
 }
 
 /**
- * Move o cursor para imediatamente após um placeholder
- * @param {Element} placeholder
+ * Move o cursor para imediatamente após um nó no editor
+ * @param {Node} node
  */
-function moveCaretAfterPlaceholder(placeholder) {
+function moveCaretAfterPlaceholder(node) {
+    if (!node) return;
+
     const selection = window.getSelection();
     if (!selection) return;
 
     const range = document.createRange();
-    range.setStartAfter(placeholder);
+    range.setStartAfter(node);
     range.collapse(true);
 
     selection.removeAllRanges();
@@ -598,8 +607,8 @@ function handleEnterFromPlaceholder(e) {
     e.preventDefault();
     e.stopPropagation();
 
-    updatePlaceholderStateOnExit(currentPlaceholder);
-    moveCaretAfterPlaceholder(currentPlaceholder);
+    const plainTextNode = updatePlaceholderStateOnExit(currentPlaceholder);
+    moveCaretAfterPlaceholder(plainTextNode || currentPlaceholder);
     return true;
 }
 
