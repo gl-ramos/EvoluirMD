@@ -46,6 +46,13 @@ body {
     color: #E5E7EB;
 }
 
+/* Links de navegação */
+.nav-link.nav-link-active,
+.nav-link[aria-current="page"] {
+    color: #E5E7EB;
+    background-color: rgba(55, 65, 81, 0.5);
+}
+
 /* Header melhorado */
 .mode-indicator-dot {
     width: 8px;

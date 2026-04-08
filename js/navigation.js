@@ -15,6 +15,7 @@ const dashboardLink = document.getElementById('dashboard-link');
 const manageTemplatesLink = document.getElementById('manage-templates-link');
 const manageCategoriesLink = document.getElementById('manage-categories-link');
 const manageSnippetsLink = document.getElementById('manage-snippets-link');
+const navLinks = [dashboardLink, manageTemplatesLink, manageCategoriesLink, manageSnippetsLink].filter(Boolean);
 
 // Novos elementos da UI reorganizada
 const newDocumentBtn = document.getElementById('new-document-btn');
@@ -228,6 +229,9 @@ function showBlankEditor() {
     }
 
     updateModeIndicator('blank-editor', 'Editor em Branco');
+    if (window.setActiveNavigationLink) {
+        window.setActiveNavigationLink(null);
+    }
 }
 
 function toggleDropdown() {
@@ -329,6 +333,21 @@ function handleHeaderSearch(e) {
             window.performSearch(query);
         }
     }
+}
+
+function setActiveNavigationLink(linkId = null) {
+    navLinks.forEach(link => {
+        link.classList.remove('nav-link-active');
+        link.removeAttribute('aria-current');
+    });
+
+    if (!linkId) return;
+
+    const activeLink = document.getElementById(linkId);
+    if (!activeLink) return;
+
+    activeLink.classList.add('nav-link-active');
+    activeLink.setAttribute('aria-current', 'page');
 }
 
 function updateModeIndicator(mode, text) {
@@ -491,6 +510,7 @@ window.updateSnippetCounter = updateSnippetCounter;
 window.showAppNotification = showAppNotification;
 window.showConfirmDialog = showConfirmDialog;
 window.closeConfirmDialog = closeConfirmDialog;
+window.setActiveNavigationLink = setActiveNavigationLink;
 
 // Exporta funções para uso em outros módulos
 export {
@@ -501,5 +521,6 @@ export {
     updateSnippetCounter,
     showAppNotification,
     showConfirmDialog,
-    closeConfirmDialog
+    closeConfirmDialog,
+    setActiveNavigationLink
 };
