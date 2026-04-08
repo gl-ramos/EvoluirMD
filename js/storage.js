@@ -445,6 +445,39 @@ function importDataFromJson(payload) {
     }
 }
 
+/**
+ * Restaura dados padrão de fábrica
+ */
+function resetDataToDefaults() {
+    window.categories = createDefaultCategories();
+    window.snippets = createDefaultSnippets();
+    window.templates = createDefaultTemplates();
+
+    saveCategoriesToStorage();
+    saveSnippetsToStorage();
+    saveTemplatesToStorage();
+
+    if (window.updateNavigationCounters) {
+        window.updateNavigationCounters();
+    }
+
+    if (window.renderDashboard) {
+        window.renderDashboard();
+    }
+
+    if (window.renderTemplatesManagementList) {
+        window.renderTemplatesManagementList();
+    }
+
+    if (window.renderSnippetsList) {
+        window.renderSnippetsList();
+    }
+
+    if (window.renderCategoriesManagementList) {
+        window.renderCategoriesManagementList();
+    }
+}
+
 // ========================================
 // EXPOSIÇÃO DE FUNÇÕES
 // ========================================
@@ -462,6 +495,7 @@ window.getRecentlyUsedTemplates = getRecentlyUsedTemplates;
 window.createExportSnapshot = createExportSnapshot;
 window.exportDataAsJson = exportDataAsJson;
 window.importDataFromJson = importDataFromJson;
+window.resetDataToDefaults = resetDataToDefaults;
 
 // Exporta funções para uso em outros módulos
 export {
@@ -476,5 +510,6 @@ export {
     getRecentlyUsedTemplates,
     createExportSnapshot,
     exportDataAsJson,
-    importDataFromJson
+    importDataFromJson,
+    resetDataToDefaults
 };
