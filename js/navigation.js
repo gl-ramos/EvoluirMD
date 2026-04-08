@@ -439,14 +439,18 @@ function showConfirmDialog(message, onConfirm, onCancel = null) {
 function closeConfirmDialog() {
     if (!confirmModal) return;
 
+    const wasOpen = !confirmModal.classList.contains('hidden');
+
     confirmModal.classList.add('hidden');
     confirmModal.setAttribute('aria-hidden', 'true');
     confirmModalOnConfirm = null;
     confirmModalOnCancel = null;
 
-    if (lastFocusedElementBeforeConfirmModal instanceof HTMLElement) {
+    if (wasOpen && lastFocusedElementBeforeConfirmModal instanceof HTMLElement) {
         lastFocusedElementBeforeConfirmModal.focus();
     }
+
+    lastFocusedElementBeforeConfirmModal = null;
 }
 
 /**

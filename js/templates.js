@@ -319,6 +319,9 @@ function addCardEventListeners(container) {
         card.addEventListener('keydown', (e) => {
             if (e.key !== 'Enter' && e.key !== ' ') return;
 
+            // Evita abrir o card quando o foco está em um botão interno
+            if (e.target !== card) return;
+
             const key = card.dataset.key;
             if (!key || !window.useTemplate) return;
 
@@ -548,12 +551,16 @@ function openTemplateModal(key = null) {
  */
 function closeTemplateModal() {
     if (templateModal) {
+        const wasOpen = !templateModal.classList.contains('hidden');
+
         templateModal.classList.add('hidden');
         templateModal.setAttribute('aria-hidden', 'true');
 
-        if (lastFocusedElementBeforeTemplateModal instanceof HTMLElement) {
+        if (wasOpen && lastFocusedElementBeforeTemplateModal instanceof HTMLElement) {
             lastFocusedElementBeforeTemplateModal.focus();
         }
+
+        lastFocusedElementBeforeTemplateModal = null;
     }
 }
 

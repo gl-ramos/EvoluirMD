@@ -165,12 +165,16 @@ function openSnippetModal(key = null) {
  */
 function closeSnippetModal() {
     if (snippetModal) {
+        const wasOpen = !snippetModal.classList.contains('hidden');
+
         snippetModal.classList.add('hidden');
         snippetModal.setAttribute('aria-hidden', 'true');
 
-        if (lastFocusedElementBeforeSnippetModal instanceof HTMLElement) {
+        if (wasOpen && lastFocusedElementBeforeSnippetModal instanceof HTMLElement) {
             lastFocusedElementBeforeSnippetModal.focus();
         }
+
+        lastFocusedElementBeforeSnippetModal = null;
     }
 }
 

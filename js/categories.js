@@ -379,12 +379,16 @@ function openCategoryModal(id = null) {
  */
 function closeCategoryModal() {
     if (categoryModal) {
+        const wasOpen = !categoryModal.classList.contains('hidden');
+
         categoryModal.classList.add('hidden');
         categoryModal.setAttribute('aria-hidden', 'true');
 
-        if (lastFocusedElementBeforeCategoryModal instanceof HTMLElement) {
+        if (wasOpen && lastFocusedElementBeforeCategoryModal instanceof HTMLElement) {
             lastFocusedElementBeforeCategoryModal.focus();
         }
+
+        lastFocusedElementBeforeCategoryModal = null;
     }
 }
 
