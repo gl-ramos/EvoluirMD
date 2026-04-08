@@ -130,6 +130,7 @@ function renderAllTemplates(filteredTemplates = null) {
 function createTemplateCard(key, template, isRecent = false) {
     const preview = getTemplatePreview(template.content);
     const isFavorite = template.isFavorite || false;
+    const safeKey = escapeHtml(key);
     
     // Busca a categoria pelo ID ou usa valores padrão
     const category = window.getCategoryById ? window.getCategoryById(template.categoryId) : null;
@@ -143,7 +144,7 @@ function createTemplateCard(key, template, isRecent = false) {
     const abbreviatedCategoryName = abbreviateText(categoryName, 12);
     
     return `
-        <div class="template-card" data-key="${key}" style="--category-color: ${categoryColor}; --category-color-dark: ${categoryColorDark};">
+        <div class="template-card" data-key="${safeKey}" style="--category-color: ${categoryColor}; --category-color-dark: ${categoryColorDark};">
             <div class="template-card-header">
                 <div class="template-card-top-row">
                     <div class="template-card-title-section">
@@ -170,16 +171,16 @@ function createTemplateCard(key, template, isRecent = false) {
                 </div>
                 
                 <div class="template-card-actions">
-                    <button class="template-card-action" onclick="event.stopPropagation(); useTemplate('${key}')" title="Usar este template">
+                    <button class="template-card-action" data-action="use" data-key="${safeKey}" title="Usar este template">
                         ▶️ Usar
                     </button>
-                    <button class="template-card-action secondary" onclick="event.stopPropagation(); editTemplate('${key}')" title="Editar template">
+                    <button class="template-card-action secondary" data-action="edit" data-key="${safeKey}" title="Editar template">
                         ✏️ Editar
                     </button>
                     <button 
                         class="template-card-action favorite ${isFavorite ? 'favorited' : ''}" 
-                        data-key="${key}"
-                        onclick="event.stopPropagation(); toggleFavorite('${key}')"
+                        data-action="favorite"
+                        data-key="${safeKey}"
                         title="${isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}"
                     >
                         ${isFavorite ? '★' : '☆'}
@@ -198,10 +199,33 @@ function addCardEventListeners(container) {
     const cards = container.querySelectorAll('.template-card');
     cards.forEach(card => {
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.template-card-action.favorite') || 
-                e.target.closest('.template-card-actions')) {
+            const actionButton = e.target.closest('.template-card-action');
+
+            if (actionButton) {
+                e.stopPropagation();
+                const action = actionButton.dataset.action;
+                const key = actionButton.dataset.key;
+
+                if (!key) return;
+
+                if (action === 'use' && window.useTemplate) {
+                    window.useTemplate(key);
+                    return;
+                }
+
+                if (action === 'edit' && window.editTemplate) {
+                    window.editTemplate(key);
+                    return;
+                }
+
+                if (action === 'favorite' && window.toggleFavorite) {
+                    window.toggleFavorite(key);
+                    return;
+                }
+
                 return;
             }
+
             const key = card.dataset.key;
             if (key && window.useTemplate) {
                 window.useTemplate(key);
