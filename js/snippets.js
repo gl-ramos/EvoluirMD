@@ -270,9 +270,30 @@ function showSnippetTooltip(filteredSnippets, rect) {
     
     // Posiciona e mostra o tooltip
     snippetTooltip.classList.remove('hidden');
+
     const tooltipHeight = snippetTooltip.offsetHeight;
-    snippetTooltip.style.left = `${rect.left}px`;
-    snippetTooltip.style.top = `${rect.top - tooltipHeight - 5}px`;
+    const tooltipWidth = snippetTooltip.offsetWidth;
+    const offsetParent = snippetTooltip.offsetParent || document.body;
+    const offsetParentRect = offsetParent.getBoundingClientRect();
+
+    // Converte coordenadas de viewport para o sistema do container relativo
+    const parentScrollLeft = offsetParent.scrollLeft || 0;
+    const parentScrollTop = offsetParent.scrollTop || 0;
+    const relativeLeft = rect.left - offsetParentRect.left + parentScrollLeft;
+    const relativeTop = rect.top - offsetParentRect.top + parentScrollTop;
+
+    // Tenta posicionar acima do cursor; se não houver espaço, posiciona abaixo
+    let top = relativeTop - tooltipHeight - 5;
+    if (top < 0) {
+        top = relativeTop + (rect.height || 18) + 5;
+    }
+
+    // Evita overflow horizontal do tooltip
+    const maxLeft = Math.max(0, (offsetParent.clientWidth || window.innerWidth) - tooltipWidth - 8);
+    const left = Math.max(0, Math.min(relativeLeft, maxLeft));
+
+    snippetTooltip.style.left = `${left}px`;
+    snippetTooltip.style.top = `${top}px`;
 }
 
 /**
