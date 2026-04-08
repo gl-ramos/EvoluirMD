@@ -16,6 +16,7 @@ const templateModal = document.getElementById('template-modal');
 const templateForm = document.getElementById('template-form');
 const createNewTemplateBtn = document.getElementById('create-new-template-btn');
 const cancelTemplateBtn = document.getElementById('cancel-template-btn');
+let lastFocusedElementBeforeTemplateModal = null;
 
 // ========================================
 // FUNÇÕES DE RENDERIZAÇÃO DE TEMPLATES
@@ -418,7 +419,8 @@ function renderTemplatesManagementList() {
  */
 function openTemplateModal(key = null) {
     if (!templateForm) return;
-    
+
+    lastFocusedElementBeforeTemplateModal = document.activeElement;
     templateForm.reset();
     const titleEl = document.getElementById('template-modal-title');
     const originalKeyInput = document.getElementById('template-original-key');
@@ -453,6 +455,10 @@ function openTemplateModal(key = null) {
     }
     
     templateModal.classList.remove('hidden');
+    templateModal.setAttribute('aria-hidden', 'false');
+
+    const firstInput = document.getElementById('template-title-input');
+    firstInput?.focus();
 }
 
 /**
@@ -461,6 +467,11 @@ function openTemplateModal(key = null) {
 function closeTemplateModal() {
     if (templateModal) {
         templateModal.classList.add('hidden');
+        templateModal.setAttribute('aria-hidden', 'true');
+
+        if (lastFocusedElementBeforeTemplateModal instanceof HTMLElement) {
+            lastFocusedElementBeforeTemplateModal.focus();
+        }
     }
 }
 

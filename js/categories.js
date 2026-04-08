@@ -16,6 +16,7 @@ const categoryForm = document.getElementById('category-form');
 const createNewCategoryBtn = document.getElementById('create-new-category-btn');
 const cancelCategoryBtn = document.getElementById('cancel-category-btn');
 const categoriesListContainer = document.getElementById('categories-list-container');
+let lastFocusedElementBeforeCategoryModal = null;
 
 // ========================================
 // FUNÇÕES CRUD DE CATEGORIAS
@@ -319,7 +320,8 @@ function renderCategoryOptions(selectElement, selectedId = null) {
  */
 function openCategoryModal(id = null) {
     if (!categoryForm) return;
-    
+
+    lastFocusedElementBeforeCategoryModal = document.activeElement;
     categoryForm.reset();
     const titleEl = document.getElementById('category-modal-title');
     const originalIdInput = document.getElementById('category-original-id');
@@ -346,6 +348,10 @@ function openCategoryModal(id = null) {
     }
     
     categoryModal.classList.remove('hidden');
+    categoryModal.setAttribute('aria-hidden', 'false');
+
+    const firstInput = document.getElementById('category-name-input');
+    firstInput?.focus();
 }
 
 /**
@@ -354,6 +360,11 @@ function openCategoryModal(id = null) {
 function closeCategoryModal() {
     if (categoryModal) {
         categoryModal.classList.add('hidden');
+        categoryModal.setAttribute('aria-hidden', 'true');
+
+        if (lastFocusedElementBeforeCategoryModal instanceof HTMLElement) {
+            lastFocusedElementBeforeCategoryModal.focus();
+        }
     }
 }
 

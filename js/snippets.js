@@ -23,6 +23,7 @@ const cancelSnippetBtn = document.getElementById('cancel-snippet-btn');
 // ========================================
 
 let currentSnippetTrigger = null;
+let lastFocusedElementBeforeSnippetModal = null;
 
 /**
  * Escapa HTML para prevenir XSS
@@ -123,7 +124,8 @@ function renderSnippetsList() {
  */
 function openSnippetModal(key = null) {
     if (!snippetForm) return;
-    
+
+    lastFocusedElementBeforeSnippetModal = document.activeElement;
     snippetForm.reset();
     const titleEl = document.getElementById('snippet-modal-title');
     const originalKeyInput = document.getElementById('snippet-original-key');
@@ -143,6 +145,10 @@ function openSnippetModal(key = null) {
     }
     
     snippetModal.classList.remove('hidden');
+    snippetModal.setAttribute('aria-hidden', 'false');
+
+    const firstInput = document.getElementById('snippet-key-input');
+    firstInput?.focus();
 }
 
 /**
@@ -151,6 +157,11 @@ function openSnippetModal(key = null) {
 function closeSnippetModal() {
     if (snippetModal) {
         snippetModal.classList.add('hidden');
+        snippetModal.setAttribute('aria-hidden', 'true');
+
+        if (lastFocusedElementBeforeSnippetModal instanceof HTMLElement) {
+            lastFocusedElementBeforeSnippetModal.focus();
+        }
     }
 }
 
