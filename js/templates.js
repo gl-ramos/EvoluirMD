@@ -29,6 +29,10 @@ function renderDashboard() {
     renderRecentTemplates();
     renderAllTemplates();
     renderCategoryFilter();
+
+    if (window.updateTemplateCounter) {
+        window.updateTemplateCounter();
+    }
 }
 
 /**
@@ -435,6 +439,10 @@ function toggleFavorite(key) {
  */
 function renderTemplatesManagementList() {
     if (!templatesListContainer) return;
+
+    if (window.updateTemplateCounter) {
+        window.updateTemplateCounter();
+    }
 
     templatesListContainer.innerHTML = '';
 

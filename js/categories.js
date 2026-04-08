@@ -252,6 +252,10 @@ function getCategoryUsageCount(id) {
  */
 function renderCategoriesManagementList() {
     if (!categoriesListContainer) return;
+
+    if (window.updateCategoryCounter) {
+        window.updateCategoryCounter();
+    }
     
     categoriesListContainer.innerHTML = '';
     

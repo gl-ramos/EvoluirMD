@@ -386,15 +386,34 @@ function updateModeIndicator(mode, text) {
     }
 }
 
+function updateCounterBadge(elementId, count, singularLabel, pluralLabel) {
+    const counterEl = document.getElementById(elementId);
+    if (!counterEl) return;
+
+    counterEl.textContent = String(count);
+    counterEl.classList.toggle('hidden', count === 0);
+    counterEl.setAttribute('aria-label', `${count} ${count === 1 ? singularLabel : pluralLabel}`);
+}
+
 function updateSnippetCounter() {
     const snippetCount = window.snippets ? Object.keys(window.snippets).length : 0;
-    const snippetCounterEl = document.getElementById('header-snippet-count');
+    updateCounterBadge('header-snippet-count', snippetCount, 'snippet', 'snippets');
+}
 
-    if (!snippetCounterEl) return;
+function updateTemplateCounter() {
+    const templateCount = window.templates ? Object.keys(window.templates).length : 0;
+    updateCounterBadge('header-template-count', templateCount, 'template', 'templates');
+}
 
-    snippetCounterEl.textContent = String(snippetCount);
-    snippetCounterEl.classList.toggle('hidden', snippetCount === 0);
-    snippetCounterEl.setAttribute('aria-label', `${snippetCount} snippet${snippetCount !== 1 ? 's' : ''}`);
+function updateCategoryCounter() {
+    const categoryCount = window.categories ? Object.keys(window.categories).length : 0;
+    updateCounterBadge('header-category-count', categoryCount, 'categoria', 'categorias');
+}
+
+function updateNavigationCounters() {
+    updateSnippetCounter();
+    updateTemplateCounter();
+    updateCategoryCounter();
 }
 
 function setupOnboardingHint() {
@@ -538,7 +557,7 @@ function setupAllListeners() {
     }
 
     // Atualiza contadores iniciais
-    updateSnippetCounter();
+    updateNavigationCounters();
 }
 
 // ========================================
@@ -551,6 +570,9 @@ window.setupAllListeners = setupAllListeners;
 window.showBlankEditor = showBlankEditor;
 window.updateModeIndicator = updateModeIndicator;
 window.updateSnippetCounter = updateSnippetCounter;
+window.updateTemplateCounter = updateTemplateCounter;
+window.updateCategoryCounter = updateCategoryCounter;
+window.updateNavigationCounters = updateNavigationCounters;
 window.showAppNotification = showAppNotification;
 window.showConfirmDialog = showConfirmDialog;
 window.closeConfirmDialog = closeConfirmDialog;
@@ -564,6 +586,9 @@ export {
     showBlankEditor,
     updateModeIndicator,
     updateSnippetCounter,
+    updateTemplateCounter,
+    updateCategoryCounter,
+    updateNavigationCounters,
     showAppNotification,
     showConfirmDialog,
     closeConfirmDialog,
