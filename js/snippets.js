@@ -229,6 +229,11 @@ function handleSaveSnippet(e) {
  * @param {string} key - Chave do snippet a ser excluído
  */
 function deleteSnippet(key) {
+    const confirmed = confirm(`Tem certeza que deseja excluir o snippet ${key}?`);
+    if (!confirmed) {
+        return;
+    }
+
     delete window.snippets[key];
     
     // Salva no localStorage
@@ -242,6 +247,10 @@ function deleteSnippet(key) {
     }
     
     renderSnippetsList();
+
+    if (window.showAppNotification) {
+        window.showAppNotification('Snippet excluído com sucesso.', 'success');
+    }
 }
 
 // ========================================

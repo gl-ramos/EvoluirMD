@@ -522,6 +522,12 @@ function handleSaveTemplate(e) {
  * @param {string} key - Chave do template a ser excluído
  */
 function deleteTemplate(key) {
+    const templateTitle = window.templates?.[key]?.title || 'este template';
+    const confirmed = confirm(`Tem certeza que deseja excluir "${templateTitle}"?`);
+    if (!confirmed) {
+        return;
+    }
+
     delete window.templates[key];
     
     // Salva no localStorage
@@ -531,6 +537,10 @@ function deleteTemplate(key) {
     
     renderTemplatesManagementList();
     renderDashboard(); // Atualiza o dashboard
+
+    if (window.showAppNotification) {
+        window.showAppNotification('Template excluído com sucesso.', 'success');
+    }
 }
 
 // ========================================
