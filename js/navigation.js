@@ -478,16 +478,30 @@ function showAppNotification(message, type = 'info') {
         info: 'bg-blue-600'
     };
 
+    let toastContainer = document.getElementById('app-toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'app-toast-container';
+        toastContainer.className = 'fixed top-4 right-4 z-[60] flex max-w-sm flex-col gap-2 pointer-events-none';
+        document.body.appendChild(toastContainer);
+    }
+
     const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 z-[60] text-white px-4 py-3 rounded-lg shadow-xl border border-white/20 ${colors[type] || colors.info}`;
+    toast.className = `text-white px-4 py-3 rounded-lg shadow-xl border border-white/20 pointer-events-auto ${colors[type] || colors.info}`;
     toast.textContent = message;
 
-    document.body.appendChild(toast);
+    toastContainer.appendChild(toast);
 
     setTimeout(() => {
-        toast.style.transition = 'opacity 0.25s ease';
+        toast.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
         toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 250);
+        toast.style.transform = 'translateY(-4px)';
+        setTimeout(() => {
+            toast.remove();
+            if (toastContainer && toastContainer.childElementCount === 0) {
+                toastContainer.remove();
+            }
+        }, 250);
     }, 2500);
 }
 
