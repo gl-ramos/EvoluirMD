@@ -280,29 +280,55 @@ function renderCategoriesManagementList() {
     categories.forEach(category => {
         const usageCount = getCategoryUsageCount(category.id);
         const canDelete = !category.isDefault;
-        
-        const el = document.createElement('div');
-        el.className = 'bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-700/50';
-        el.innerHTML = `
-            <div class="flex items-center space-x-3">
-                <div class="w-4 h-4 rounded-full border border-gray-600" style="background-color: ${category.color}"></div>
-                <div>
-                    <h3 class="font-bold text-lg text-gray-200">${(() => { const div = document.createElement('div'); div.textContent = category.name; return div.innerHTML; })()}</h3>
-                    <p class="text-sm text-gray-400">
-                        ${usageCount} template${usageCount !== 1 ? 's' : ''}
-                        ${category.isDefault ? ' • Categoria padrão' : ''}
-                    </p>
-                </div>
-            </div>
-            <div class="space-x-2">
-                <button data-id="${category.id}" class="edit-category-btn text-blue-400 hover:text-blue-300">Editar</button>
-                ${canDelete ? 
-                    `<button data-id="${category.id}" class="delete-category-btn text-red-400 hover:text-red-300">Excluir</button>` : 
-                    ''
-                }
-            </div>
-        `;
-        categoriesListContainer.appendChild(el);
+
+        // Hardening XSS: evita innerHTML com dados vindos de import/localStorage
+        const safeColor = normalizeHexColor(category.color) || '#6B7280';
+
+        const row = document.createElement('div');
+        row.className = 'bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-700/50';
+
+        const left = document.createElement('div');
+        left.className = 'flex items-center space-x-3';
+
+        const colorDot = document.createElement('div');
+        colorDot.className = 'w-4 h-4 rounded-full border border-gray-600';
+        colorDot.style.backgroundColor = safeColor;
+
+        const info = document.createElement('div');
+
+        const title = document.createElement('h3');
+        title.className = 'font-bold text-lg text-gray-200';
+        title.textContent = String(category.name || 'Sem nome');
+
+        const meta = document.createElement('p');
+        meta.className = 'text-sm text-gray-400';
+        meta.textContent = `${usageCount} template${usageCount !== 1 ? 's' : ''}${category.isDefault ? ' • Categoria padrão' : ''}`;
+
+        info.appendChild(title);
+        info.appendChild(meta);
+        left.appendChild(colorDot);
+        left.appendChild(info);
+
+        const actions = document.createElement('div');
+        actions.className = 'space-x-2';
+
+        const editBtn = document.createElement('button');
+        editBtn.dataset.id = String(category.id || '');
+        editBtn.className = 'edit-category-btn text-blue-400 hover:text-blue-300';
+        editBtn.textContent = 'Editar';
+        actions.appendChild(editBtn);
+
+        if (canDelete) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.dataset.id = String(category.id || '');
+            deleteBtn.className = 'delete-category-btn text-red-400 hover:text-red-300';
+            deleteBtn.textContent = 'Excluir';
+            actions.appendChild(deleteBtn);
+        }
+
+        row.appendChild(left);
+        row.appendChild(actions);
+        categoriesListContainer.appendChild(row);
     });
     
     // Adiciona event listeners
