@@ -23,6 +23,7 @@ const cancelSnippetBtn = document.getElementById('cancel-snippet-btn');
 // ========================================
 
 let currentSnippetTrigger = null;
+let lastFocusedElementBeforeSnippetModal = null;
 
 /**
  * Escapa HTML para prevenir XSS
@@ -49,10 +50,19 @@ function renderSnippetsList() {
     snippetsListContainer.innerHTML = '';
 
     if (!window.snippets || Object.keys(window.snippets).length === 0) {
-        const emptyMessage = document.createElement('p');
-        emptyMessage.className = 'text-gray-400';
-        emptyMessage.textContent = 'Você ainda não criou nenhum snippet.';
-        snippetsListContainer.appendChild(emptyMessage);
+        snippetsListContainer.innerHTML = `
+            <div class="empty-state-card">
+                <p>Você ainda não criou nenhum snippet.</p>
+                <p class="text-sm text-gray-400">Use snippets para agilizar frases repetitivas no editor.</p>
+                <div class="empty-state-actions">
+                    <button id="create-first-snippet-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Primeiro Snippet</button>
+                </div>
+            </div>
+        `;
+
+        snippetsListContainer.querySelector('#create-first-snippet-btn')?.addEventListener('click', () => {
+            openSnippetModal();
+        });
 
         // Atualiza contador
         if (window.updateSnippetCounter) {
@@ -123,7 +133,8 @@ function renderSnippetsList() {
  */
 function openSnippetModal(key = null) {
     if (!snippetForm) return;
-    
+
+    lastFocusedElementBeforeSnippetModal = document.activeElement;
     snippetForm.reset();
     const titleEl = document.getElementById('snippet-modal-title');
     const originalKeyInput = document.getElementById('snippet-original-key');
@@ -143,6 +154,10 @@ function openSnippetModal(key = null) {
     }
     
     snippetModal.classList.remove('hidden');
+    snippetModal.setAttribute('aria-hidden', 'false');
+
+    const firstInput = document.getElementById('snippet-key-input');
+    firstInput?.focus();
 }
 
 /**
@@ -150,7 +165,16 @@ function openSnippetModal(key = null) {
  */
 function closeSnippetModal() {
     if (snippetModal) {
+        const wasOpen = !snippetModal.classList.contains('hidden');
+
         snippetModal.classList.add('hidden');
+        snippetModal.setAttribute('aria-hidden', 'true');
+
+        if (wasOpen && lastFocusedElementBeforeSnippetModal instanceof HTMLElement) {
+            lastFocusedElementBeforeSnippetModal.focus();
+        }
+
+        lastFocusedElementBeforeSnippetModal = null;
     }
 }
 
@@ -184,33 +208,45 @@ function handleSaveSnippet(e) {
     // Se estiver criando/renomeando para uma chave existente, pede confirmação
     const isChangingKey = originalKey && newKey !== originalKey;
     const isOverwriting = window.snippets[newKey] && (!originalKey || isChangingKey);
-    if (isOverwriting && !confirm(`Já existe um snippet com a chave ${newKey}. Deseja sobrescrever?`)) {
-        return;
-    }
-    
-    // Se estiver editando e mudou a chave, remove a antiga
-    if (isChangingKey) {
-        delete window.snippets[originalKey];
-    }
-    
-    window.snippets[newKey] = { description, content };
-    
-    // Salva no localStorage
-    if (window.saveSnippetsToStorage) {
-        window.saveSnippetsToStorage();
-    }
-    
-    // Atualiza contadores
-    if (window.updateSnippetCounter) {
-        window.updateSnippetCounter();
-    }
-    
-    closeSnippetModal();
-    renderSnippetsList();
 
-    if (window.showAppNotification) {
-        window.showAppNotification('Snippet salvo com sucesso!', 'success');
+    const performSaveSnippet = () => {
+        // Se estiver editando e mudou a chave, remove a antiga
+        if (isChangingKey) {
+            delete window.snippets[originalKey];
+        }
+
+        window.snippets[newKey] = { description, content };
+
+        // Salva no localStorage
+        if (window.saveSnippetsToStorage) {
+            window.saveSnippetsToStorage();
+        }
+
+        // Atualiza contadores
+        if (window.updateSnippetCounter) {
+            window.updateSnippetCounter();
+        }
+
+        closeSnippetModal();
+        renderSnippetsList();
+
+        if (window.showAppNotification) {
+            window.showAppNotification('Snippet salvo com sucesso!', 'success');
+        }
+    };
+
+    if (isOverwriting) {
+        if (window.showConfirmDialog) {
+            window.showConfirmDialog(`Já existe um snippet com a chave ${newKey}. Deseja sobrescrever?`, performSaveSnippet);
+            return;
+        }
+
+        if (!confirm(`Já existe um snippet com a chave ${newKey}. Deseja sobrescrever?`)) {
+            return;
+        }
     }
+
+    performSaveSnippet();
 }
 
 /**
@@ -218,19 +254,34 @@ function handleSaveSnippet(e) {
  * @param {string} key - Chave do snippet a ser excluído
  */
 function deleteSnippet(key) {
-    delete window.snippets[key];
-    
-    // Salva no localStorage
-    if (window.saveSnippetsToStorage) {
-        window.saveSnippetsToStorage();
+    const performDelete = () => {
+        delete window.snippets[key];
+
+        // Salva no localStorage
+        if (window.saveSnippetsToStorage) {
+            window.saveSnippetsToStorage();
+        }
+
+        // Atualiza contadores
+        if (window.updateSnippetCounter) {
+            window.updateSnippetCounter();
+        }
+
+        renderSnippetsList();
+
+        if (window.showAppNotification) {
+            window.showAppNotification('Snippet excluído com sucesso.', 'success');
+        }
+    };
+
+    if (window.showConfirmDialog) {
+        window.showConfirmDialog(`Tem certeza que deseja excluir o snippet ${key}?`, performDelete);
+        return;
     }
-    
-    // Atualiza contadores
-    if (window.updateSnippetCounter) {
-        window.updateSnippetCounter();
+
+    if (confirm(`Tem certeza que deseja excluir o snippet ${key}?`)) {
+        performDelete();
     }
-    
-    renderSnippetsList();
 }
 
 // ========================================

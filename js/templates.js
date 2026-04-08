@@ -16,6 +16,7 @@ const templateModal = document.getElementById('template-modal');
 const templateForm = document.getElementById('template-form');
 const createNewTemplateBtn = document.getElementById('create-new-template-btn');
 const cancelTemplateBtn = document.getElementById('cancel-template-btn');
+let lastFocusedElementBeforeTemplateModal = null;
 
 // ========================================
 // FUNÇÕES DE RENDERIZAÇÃO DE TEMPLATES
@@ -37,25 +38,55 @@ function renderRecentTemplates() {
     const recentGrid = document.getElementById('recent-templates-grid');
     const noRecentDiv = document.getElementById('no-recent-templates');
     const recentSection = document.getElementById('recent-templates-section');
-    
+
     if (!recentGrid || !noRecentDiv || !recentSection) return;
-    
+
     const recentTemplates = window.getRecentlyUsedTemplates ? window.getRecentlyUsedTemplates(6) : [];
-    
+    const hasAnyTemplates = window.templates && Object.keys(window.templates).length > 0;
+
     if (recentTemplates.length === 0) {
         recentGrid.innerHTML = '';
+        recentSection.classList.remove('hidden');
         noRecentDiv.classList.remove('hidden');
-        recentSection.classList.add('hidden');
+
+        noRecentDiv.innerHTML = hasAnyTemplates
+            ? `
+                <div class="empty-state-card">
+                    <p>Você ainda não usou nenhum template recentemente.</p>
+                    <div class="empty-state-actions">
+                        <button id="explore-all-templates-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Explorar Templates</button>
+                    </div>
+                </div>
+            `
+            : `
+                <div class="empty-state-card">
+                    <p>Você ainda não possui templates. Crie seu primeiro template para começar.</p>
+                    <div class="empty-state-actions">
+                        <button id="create-first-template-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Primeiro Template</button>
+                    </div>
+                </div>
+            `;
+
+        noRecentDiv.querySelector('#explore-all-templates-btn')?.addEventListener('click', () => {
+            document.getElementById('all-templates-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        noRecentDiv.querySelector('#create-first-template-btn')?.addEventListener('click', () => {
+            if (window.openTemplateModal) {
+                window.openTemplateModal();
+            }
+        });
+
         return;
     }
-    
+
     recentSection.classList.remove('hidden');
     noRecentDiv.classList.add('hidden');
-    
+
     recentGrid.innerHTML = recentTemplates
         .map(({ key, template }) => createTemplateCard(key, template, true))
         .join('');
-    
+
     // Adiciona event listeners
     addCardEventListeners(recentGrid);
 }
@@ -91,18 +122,62 @@ function renderCategoryFilter() {
 function renderAllTemplates(filteredTemplates = null) {
     const allGrid = document.getElementById('all-templates-grid');
     const noTemplatesDiv = document.getElementById('no-templates-found');
-    
+
     if (!allGrid || !noTemplatesDiv) return;
-    
+
     const templates = filteredTemplates || window.templates || {};
     const templateEntries = Object.entries(templates);
-    
+
     if (templateEntries.length === 0) {
         allGrid.innerHTML = '';
         noTemplatesDiv.classList.remove('hidden');
+
+        const query = document.getElementById('template-search')?.value?.trim() || '';
+        const categoryId = document.getElementById('category-filter')?.value || '';
+        const isFiltering = Boolean(query || categoryId || document.body.classList.contains('search-active'));
+
+        noTemplatesDiv.innerHTML = isFiltering
+            ? `
+                <div class="empty-state-card">
+                    <p>Nenhum template corresponde aos filtros atuais.</p>
+                    <div class="empty-state-actions">
+                        <button id="clear-template-filters-btn" type="button" class="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg">Limpar Filtros</button>
+                        <button id="create-template-from-empty-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Template</button>
+                    </div>
+                </div>
+            `
+            : `
+                <div class="empty-state-card">
+                    <p>Nenhum template encontrado.</p>
+                    <div class="empty-state-actions">
+                        <button id="create-template-from-empty-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Template</button>
+                    </div>
+                </div>
+            `;
+
+        noTemplatesDiv.querySelector('#create-template-from-empty-btn')?.addEventListener('click', () => {
+            if (window.openTemplateModal) {
+                window.openTemplateModal();
+            }
+        });
+
+        noTemplatesDiv.querySelector('#clear-template-filters-btn')?.addEventListener('click', () => {
+            const searchInput = document.getElementById('template-search');
+            const categoryFilter = document.getElementById('category-filter');
+
+            if (searchInput) searchInput.value = '';
+            if (categoryFilter) categoryFilter.value = '';
+
+            if (window.performSearch) {
+                window.performSearch('', '');
+            } else {
+                renderAllTemplates();
+            }
+        });
+
         return;
     }
-    
+
     noTemplatesDiv.classList.add('hidden');
     
     // Ordena templates por data de criação (mais recentes primeiro)
@@ -144,7 +219,14 @@ function createTemplateCard(key, template, isRecent = false) {
     const abbreviatedCategoryName = abbreviateText(categoryName, 12);
     
     return `
-        <div class="template-card" data-key="${safeKey}" style="--category-color: ${categoryColor}; --category-color-dark: ${categoryColorDark};">
+        <div
+            class="template-card"
+            data-key="${safeKey}"
+            style="--category-color: ${categoryColor}; --category-color-dark: ${categoryColorDark};"
+            role="button"
+            tabindex="0"
+            aria-label="Abrir template ${escapeHtml(template.title)}"
+        >
             <div class="template-card-header">
                 <div class="template-card-top-row">
                     <div class="template-card-title-section">
@@ -171,10 +253,10 @@ function createTemplateCard(key, template, isRecent = false) {
                 </div>
                 
                 <div class="template-card-actions">
-                    <button class="template-card-action" data-action="use" data-key="${safeKey}" title="Usar este template">
+                    <button class="template-card-action" data-action="use" data-key="${safeKey}" title="Usar este template" aria-label="Usar template ${escapeHtml(template.title)}">
                         ▶️ Usar
                     </button>
-                    <button class="template-card-action secondary" data-action="edit" data-key="${safeKey}" title="Editar template">
+                    <button class="template-card-action secondary" data-action="edit" data-key="${safeKey}" title="Editar template" aria-label="Editar template ${escapeHtml(template.title)}">
                         ✏️ Editar
                     </button>
                     <button 
@@ -182,6 +264,8 @@ function createTemplateCard(key, template, isRecent = false) {
                         data-action="favorite"
                         data-key="${safeKey}"
                         title="${isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}"
+                        aria-label="${isFavorite ? 'Remover template dos favoritos' : 'Adicionar template aos favoritos'}"
+                        aria-pressed="${isFavorite ? 'true' : 'false'}"
                     >
                         ${isFavorite ? '★' : '☆'}
                     </button>
@@ -230,6 +314,19 @@ function addCardEventListeners(container) {
             if (key && window.useTemplate) {
                 window.useTemplate(key);
             }
+        });
+
+        card.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+
+            // Evita abrir o card quando o foco está em um botão interno
+            if (e.target !== card) return;
+
+            const key = card.dataset.key;
+            if (!key || !window.useTemplate) return;
+
+            e.preventDefault();
+            window.useTemplate(key);
         });
     });
 }
@@ -339,10 +436,18 @@ function renderTemplatesManagementList() {
     templatesListContainer.innerHTML = '';
 
     if (!window.templates || Object.keys(window.templates).length === 0) {
-        const emptyMessage = document.createElement('p');
-        emptyMessage.className = 'text-gray-400';
-        emptyMessage.textContent = 'Você ainda não criou nenhum template.';
-        templatesListContainer.appendChild(emptyMessage);
+        templatesListContainer.innerHTML = `
+            <div class="empty-state-card">
+                <p>Você ainda não criou nenhum template.</p>
+                <div class="empty-state-actions">
+                    <button id="create-template-management-empty-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Primeiro Template</button>
+                </div>
+            </div>
+        `;
+
+        templatesListContainer.querySelector('#create-template-management-empty-btn')?.addEventListener('click', () => {
+            openTemplateModal();
+        });
         return;
     }
 
@@ -399,7 +504,8 @@ function renderTemplatesManagementList() {
  */
 function openTemplateModal(key = null) {
     if (!templateForm) return;
-    
+
+    lastFocusedElementBeforeTemplateModal = document.activeElement;
     templateForm.reset();
     const titleEl = document.getElementById('template-modal-title');
     const originalKeyInput = document.getElementById('template-original-key');
@@ -434,6 +540,10 @@ function openTemplateModal(key = null) {
     }
     
     templateModal.classList.remove('hidden');
+    templateModal.setAttribute('aria-hidden', 'false');
+
+    const firstInput = document.getElementById('template-title-input');
+    firstInput?.focus();
 }
 
 /**
@@ -441,7 +551,16 @@ function openTemplateModal(key = null) {
  */
 function closeTemplateModal() {
     if (templateModal) {
+        const wasOpen = !templateModal.classList.contains('hidden');
+
         templateModal.classList.add('hidden');
+        templateModal.setAttribute('aria-hidden', 'true');
+
+        if (wasOpen && lastFocusedElementBeforeTemplateModal instanceof HTMLElement) {
+            lastFocusedElementBeforeTemplateModal.focus();
+        }
+
+        lastFocusedElementBeforeTemplateModal = null;
     }
 }
 
@@ -492,15 +611,32 @@ function handleSaveTemplate(e) {
  * @param {string} key - Chave do template a ser excluído
  */
 function deleteTemplate(key) {
-    delete window.templates[key];
-    
-    // Salva no localStorage
-    if (window.saveTemplatesToStorage) {
-        window.saveTemplatesToStorage();
+    const templateTitle = window.templates?.[key]?.title || 'este template';
+
+    const performDelete = () => {
+        delete window.templates[key];
+
+        // Salva no localStorage
+        if (window.saveTemplatesToStorage) {
+            window.saveTemplatesToStorage();
+        }
+
+        renderTemplatesManagementList();
+        renderDashboard(); // Atualiza o dashboard
+
+        if (window.showAppNotification) {
+            window.showAppNotification('Template excluído com sucesso.', 'success');
+        }
+    };
+
+    if (window.showConfirmDialog) {
+        window.showConfirmDialog(`Tem certeza que deseja excluir "${templateTitle}"?`, performDelete);
+        return;
     }
-    
-    renderTemplatesManagementList();
-    renderDashboard(); // Atualiza o dashboard
+
+    if (confirm(`Tem certeza que deseja excluir "${templateTitle}"?`)) {
+        performDelete();
+    }
 }
 
 // ========================================

@@ -16,6 +16,7 @@ const categoryForm = document.getElementById('category-form');
 const createNewCategoryBtn = document.getElementById('create-new-category-btn');
 const cancelCategoryBtn = document.getElementById('cancel-category-btn');
 const categoriesListContainer = document.getElementById('categories-list-container');
+let lastFocusedElementBeforeCategoryModal = null;
 
 // ========================================
 // FUNÇÕES CRUD DE CATEGORIAS
@@ -233,7 +234,18 @@ function renderCategoriesManagementList() {
     const categories = getAllCategories();
     
     if (categories.length === 0) {
-        categoriesListContainer.innerHTML = `<p class="text-gray-400">Nenhuma categoria encontrada.</p>`;
+        categoriesListContainer.innerHTML = `
+            <div class="empty-state-card">
+                <p>Nenhuma categoria encontrada.</p>
+                <div class="empty-state-actions">
+                    <button id="create-first-category-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Primeira Categoria</button>
+                </div>
+            </div>
+        `;
+
+        categoriesListContainer.querySelector('#create-first-category-btn')?.addEventListener('click', () => {
+            openCategoryModal();
+        });
         return;
     }
     
@@ -272,7 +284,7 @@ function renderCategoriesManagementList() {
     
     document.querySelectorAll('.delete-category-btn').forEach(btn => 
         btn.addEventListener('click', () => {
-            if (confirm('Tem certeza que deseja excluir esta categoria?')) {
+            const performDelete = () => {
                 try {
                     deleteCategory(btn.dataset.id);
                     renderCategoriesManagementList();
@@ -283,6 +295,15 @@ function renderCategoriesManagementList() {
                         window.showAppNotification('Erro ao excluir categoria: ' + error.message, 'error');
                     }
                 }
+            };
+
+            if (window.showConfirmDialog) {
+                window.showConfirmDialog('Tem certeza que deseja excluir esta categoria?', performDelete);
+                return;
+            }
+
+            if (confirm('Tem certeza que deseja excluir esta categoria?')) {
+                performDelete();
             }
         })
     );
@@ -319,7 +340,8 @@ function renderCategoryOptions(selectElement, selectedId = null) {
  */
 function openCategoryModal(id = null) {
     if (!categoryForm) return;
-    
+
+    lastFocusedElementBeforeCategoryModal = document.activeElement;
     categoryForm.reset();
     const titleEl = document.getElementById('category-modal-title');
     const originalIdInput = document.getElementById('category-original-id');
@@ -346,6 +368,10 @@ function openCategoryModal(id = null) {
     }
     
     categoryModal.classList.remove('hidden');
+    categoryModal.setAttribute('aria-hidden', 'false');
+
+    const firstInput = document.getElementById('category-name-input');
+    firstInput?.focus();
 }
 
 /**
@@ -353,7 +379,16 @@ function openCategoryModal(id = null) {
  */
 function closeCategoryModal() {
     if (categoryModal) {
+        const wasOpen = !categoryModal.classList.contains('hidden');
+
         categoryModal.classList.add('hidden');
+        categoryModal.setAttribute('aria-hidden', 'true');
+
+        if (wasOpen && lastFocusedElementBeforeCategoryModal instanceof HTMLElement) {
+            lastFocusedElementBeforeCategoryModal.focus();
+        }
+
+        lastFocusedElementBeforeCategoryModal = null;
     }
 }
 

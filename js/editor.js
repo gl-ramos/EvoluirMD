@@ -266,42 +266,36 @@ function saveBlankEditorAsTemplate() {
     }
 
     const content = editorContent.textContent.trim();
-    const title = prompt('Digite um título para o template:');
-    
-    if (!title || !title.trim()) {
+
+    // Reaproveita o modal de template para evitar prompt nativo do navegador
+    if (window.openTemplateModal) {
+        window.openTemplateModal();
+
+        const titleInput = document.getElementById('template-title-input');
+        const contentInput = document.getElementById('template-content-input');
+        const categorySelect = document.getElementById('template-category-select');
+
+        if (titleInput && !titleInput.value.trim()) {
+            titleInput.value = 'Novo Template';
+            titleInput.select();
+        }
+
+        if (contentInput) {
+            contentInput.value = content;
+        }
+
+        if (categorySelect && !categorySelect.value) {
+            categorySelect.value = 'geral';
+        }
+
+        if (window.showAppNotification) {
+            window.showAppNotification('Defina o título e salve o template no modal.', 'info');
+        }
         return;
     }
 
-    // Cria novo template
-    const key = `template_${Date.now()}`;
-    const now = Date.now();
-
-    if (!window.templates) {
-        window.templates = {};
-    }
-
-    window.templates[key] = {
-        title: title.trim(),
-        content: content,
-        lastUsed: null,
-        usageCount: 0,
-        isFavorite: false,
-        categoryId: 'geral',
-        createdAt: now
-    };
-
-    // Salva no localStorage
-    if (window.saveTemplatesToStorage) {
-        window.saveTemplatesToStorage();
-    }
-
-    // Atualiza renderizações
-    if (window.renderDashboard) {
-        window.renderDashboard();
-    }
-
     if (window.showAppNotification) {
-        window.showAppNotification('Template salvo com sucesso!', 'success');
+        window.showAppNotification('Não foi possível abrir o modal de template.', 'error');
     }
 }
 

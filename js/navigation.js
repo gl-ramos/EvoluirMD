@@ -11,10 +11,12 @@
 // SELETORES DE ELEMENTOS DE NAVEGAÇÃO
 // ========================================
 
+const logoHomeBtn = document.getElementById('logo-home-btn');
 const dashboardLink = document.getElementById('dashboard-link');
 const manageTemplatesLink = document.getElementById('manage-templates-link');
 const manageCategoriesLink = document.getElementById('manage-categories-link');
 const manageSnippetsLink = document.getElementById('manage-snippets-link');
+const navLinks = [dashboardLink, manageTemplatesLink, manageCategoriesLink, manageSnippetsLink].filter(Boolean);
 
 // Novos elementos da UI reorganizada
 const newDocumentBtn = document.getElementById('new-document-btn');
@@ -23,8 +25,34 @@ const blankEditorLink = document.getElementById('blank-editor-link');
 const fromTemplateLink = document.getElementById('from-template-link');
 const headerSearch = document.getElementById('header-search');
 const clearSearchBtn = document.getElementById('clear-search');
+const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+const appSidebar = document.getElementById('app-sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const onboardingHint = document.getElementById('onboarding-hint');
+const dismissOnboardingHintBtn = document.getElementById('dismiss-onboarding-hint');
+const confirmModal = document.getElementById('confirm-modal');
+const confirmModalMessage = document.getElementById('confirm-modal-message');
+const confirmModalConfirmBtn = document.getElementById('confirm-modal-confirm');
+const confirmModalCancelBtn = document.getElementById('confirm-modal-cancel');
+
+let confirmModalOnConfirm = null;
+let confirmModalOnCancel = null;
+let lastFocusedElementBeforeConfirmModal = null;
 
 function setupNavigationListeners() {
+    setupSidebarListeners();
+    setupOnboardingHint();
+    setupConfirmDialogListeners();
+
+    if (logoHomeBtn) {
+        logoHomeBtn.addEventListener('click', () => {
+            if (window.showDefaultState) {
+                window.showDefaultState();
+            }
+            closeSidebarOnMobile();
+        });
+    }
+
     // Link para gerenciamento de templates
     if (dashboardLink) {
         dashboardLink.addEventListener('click', (e) => { 
@@ -32,6 +60,7 @@ function setupNavigationListeners() {
             if (window.showDefaultState) {
                 window.showDefaultState(); 
             }
+            closeSidebarOnMobile();
         });
     }
 
@@ -41,6 +70,7 @@ function setupNavigationListeners() {
             if (window.showTemplatesState) {
                 window.showTemplatesState(); 
             }
+            closeSidebarOnMobile();
         });
     }
     
@@ -51,6 +81,7 @@ function setupNavigationListeners() {
             if (window.showCategoriesState) {
                 window.showCategoriesState(); 
             }
+            closeSidebarOnMobile();
         });
     }
     
@@ -61,6 +92,7 @@ function setupNavigationListeners() {
             if (window.showSnippetsState) {
                 window.showSnippetsState(); 
             }
+            closeSidebarOnMobile();
         });
     }
 
@@ -77,6 +109,14 @@ function setupNavigationListeners() {
                 closeDropdown();
             }
         });
+
+        // Fecha dropdown com Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && newDocumentDropdown && !newDocumentDropdown.classList.contains('hidden')) {
+                closeDropdown();
+                newDocumentBtn.focus();
+            }
+        });
     }
 
     // Link para editor em branco
@@ -85,6 +125,7 @@ function setupNavigationListeners() {
             e.preventDefault();
             showBlankEditor();
             closeDropdown();
+            closeSidebarOnMobile();
         });
     }
 
@@ -96,6 +137,7 @@ function setupNavigationListeners() {
                 window.showDefaultState();
             }
             closeDropdown();
+            closeSidebarOnMobile();
         });
     }
 
@@ -120,6 +162,67 @@ function setupNavigationListeners() {
 
 }
 
+function setupSidebarListeners() {
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', () => {
+            toggleSidebar();
+        });
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeSidebar();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+            closeSidebar(false);
+        }
+    });
+}
+
+function toggleSidebar() {
+    if (!appSidebar) return;
+    const isOpen = !appSidebar.classList.contains('-translate-x-full');
+
+    if (isOpen) {
+        closeSidebar();
+    } else {
+        openSidebar();
+    }
+}
+
+function openSidebar() {
+    if (!appSidebar) return;
+
+    appSidebar.classList.remove('-translate-x-full');
+    sidebarOverlay?.classList.remove('hidden');
+    sidebarToggleBtn?.setAttribute('aria-expanded', 'true');
+}
+
+function closeSidebar(restoreToggleFocus = false) {
+    if (!appSidebar) return;
+
+    appSidebar.classList.add('-translate-x-full');
+    sidebarOverlay?.classList.add('hidden');
+    sidebarToggleBtn?.setAttribute('aria-expanded', 'false');
+
+    if (restoreToggleFocus) {
+        sidebarToggleBtn?.focus();
+    }
+}
+
+function closeSidebarOnMobile() {
+    if (window.innerWidth < 768) {
+        closeSidebar();
+    }
+}
+
 function showBlankEditor() {
     if (window.hideAllStates) {
         window.hideAllStates();
@@ -136,6 +239,9 @@ function showBlankEditor() {
     }
 
     updateModeIndicator('blank-editor', 'Editor em Branco');
+    if (window.setActiveNavigationLink) {
+        window.setActiveNavigationLink(null);
+    }
 }
 
 function toggleDropdown() {
@@ -152,13 +258,19 @@ function toggleDropdown() {
 function openDropdown() {
     if (newDocumentDropdown) {
         newDocumentDropdown.classList.remove('hidden');
+        newDocumentBtn?.setAttribute('aria-expanded', 'true');
         renderQuickTemplates();
+
+        // foco inicial no primeiro item para navegação por teclado
+        const firstMenuItem = newDocumentDropdown.querySelector('[role="menuitem"], .template-quick-item');
+        firstMenuItem?.focus();
     }
 }
 
 function closeDropdown() {
     if (newDocumentDropdown) {
         newDocumentDropdown.classList.add('hidden');
+        newDocumentBtn?.setAttribute('aria-expanded', 'false');
     }
 }
 
@@ -194,6 +306,7 @@ function renderQuickTemplates() {
         const item = document.createElement('a');
         item.href = '#';
         item.className = 'template-quick-item';
+        item.setAttribute('role', 'menuitem');
         item.textContent = template.title;
         item.addEventListener('click', (e) => {
             e.preventDefault();
@@ -232,6 +345,21 @@ function handleHeaderSearch(e) {
     }
 }
 
+function setActiveNavigationLink(linkId = null) {
+    navLinks.forEach(link => {
+        link.classList.remove('nav-link-active');
+        link.removeAttribute('aria-current');
+    });
+
+    if (!linkId) return;
+
+    const activeLink = document.getElementById(linkId);
+    if (!activeLink) return;
+
+    activeLink.classList.add('nav-link-active');
+    activeLink.setAttribute('aria-current', 'page');
+}
+
 function updateModeIndicator(mode, text) {
     const modeIcon = document.getElementById('mode-icon');
     const modeText = document.getElementById('mode-text');
@@ -251,6 +379,78 @@ function updateSnippetCounter() {
     const snippetCount = window.snippets ? Object.keys(window.snippets).length : 0;
     // Note: header-snippet-count element doesn't exist in HTML yet
     // Future enhancement: Add snippet counter to header if needed
+}
+
+function setupOnboardingHint() {
+    if (!onboardingHint || !dismissOnboardingHintBtn) return;
+
+    const dismissed = localStorage.getItem('evoluirMD_onboarding_hint_dismissed') === 'true';
+    if (!dismissed) {
+        onboardingHint.classList.remove('hidden');
+    }
+
+    dismissOnboardingHintBtn.addEventListener('click', () => {
+        onboardingHint.classList.add('hidden');
+        localStorage.setItem('evoluirMD_onboarding_hint_dismissed', 'true');
+    });
+}
+
+function setupConfirmDialogListeners() {
+    if (!confirmModal || !confirmModalConfirmBtn || !confirmModalCancelBtn) return;
+
+    confirmModalConfirmBtn.addEventListener('click', () => {
+        const callback = confirmModalOnConfirm;
+        closeConfirmDialog();
+        if (typeof callback === 'function') callback();
+    });
+
+    confirmModalCancelBtn.addEventListener('click', () => {
+        const callback = confirmModalOnCancel;
+        closeConfirmDialog();
+        if (typeof callback === 'function') callback();
+    });
+
+    confirmModal.addEventListener('click', (e) => {
+        if (e.target === confirmModal) {
+            closeConfirmDialog();
+        }
+    });
+}
+
+function showConfirmDialog(message, onConfirm, onCancel = null) {
+    if (!confirmModal || !confirmModalMessage) {
+        if (window.confirm(message)) {
+            if (typeof onConfirm === 'function') onConfirm();
+        } else if (typeof onCancel === 'function') {
+            onCancel();
+        }
+        return;
+    }
+
+    lastFocusedElementBeforeConfirmModal = document.activeElement;
+    confirmModalMessage.textContent = message;
+    confirmModalOnConfirm = onConfirm;
+    confirmModalOnCancel = onCancel;
+    confirmModal.classList.remove('hidden');
+    confirmModal.setAttribute('aria-hidden', 'false');
+    confirmModalConfirmBtn.focus();
+}
+
+function closeConfirmDialog() {
+    if (!confirmModal) return;
+
+    const wasOpen = !confirmModal.classList.contains('hidden');
+
+    confirmModal.classList.add('hidden');
+    confirmModal.setAttribute('aria-hidden', 'true');
+    confirmModalOnConfirm = null;
+    confirmModalOnCancel = null;
+
+    if (wasOpen && lastFocusedElementBeforeConfirmModal instanceof HTMLElement) {
+        lastFocusedElementBeforeConfirmModal.focus();
+    }
+
+    lastFocusedElementBeforeConfirmModal = null;
 }
 
 /**
@@ -322,6 +522,9 @@ window.showBlankEditor = showBlankEditor;
 window.updateModeIndicator = updateModeIndicator;
 window.updateSnippetCounter = updateSnippetCounter;
 window.showAppNotification = showAppNotification;
+window.showConfirmDialog = showConfirmDialog;
+window.closeConfirmDialog = closeConfirmDialog;
+window.setActiveNavigationLink = setActiveNavigationLink;
 
 // Exporta funções para uso em outros módulos
 export {
@@ -330,5 +533,8 @@ export {
     showBlankEditor,
     updateModeIndicator,
     updateSnippetCounter,
-    showAppNotification
+    showAppNotification,
+    showConfirmDialog,
+    closeConfirmDialog,
+    setActiveNavigationLink
 };

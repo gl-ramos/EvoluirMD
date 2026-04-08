@@ -46,6 +46,13 @@ body {
     color: #E5E7EB;
 }
 
+/* Links de navegação */
+.nav-link.nav-link-active,
+.nav-link[aria-current="page"] {
+    color: #E5E7EB;
+    background-color: rgba(55, 65, 81, 0.5);
+}
+
 /* Header melhorado */
 .mode-indicator-dot {
     width: 8px;
@@ -73,6 +80,21 @@ body {
 #editor-content {
     border: none !important;
     outline: none !important;
+}
+
+/* Reforça foco visível para navegação por teclado */
+#editor-content:focus-visible {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.7);
+    border-radius: 8px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.75);
+    outline-offset: 2px;
 }
 
 /* ========================================
@@ -550,6 +572,28 @@ body {
         font-size: 0.65rem;
         padding: 5px 8px;
     }
+}
+
+/* Empty states com CTA */
+.empty-state-card {
+    background: rgba(31, 41, 55, 0.45);
+    border: 1px dashed rgba(107, 114, 128, 0.6);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    color: #D1D5DB;
+}
+
+.empty-state-card p {
+    margin: 0 0 10px 0;
+}
+
+.empty-state-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
 }
 
 /* Dashboard Search Bar Animations */
