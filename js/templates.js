@@ -261,10 +261,12 @@ function createTemplateCard(key, template, isRecent = false) {
                 
                 <div class="template-card-actions">
                     <button class="template-card-action" data-action="use" data-key="${safeKey}" title="Usar este template" aria-label="Usar template ${escapeHtml(template.title)}">
-                        ▶️ Usar
+                        <i class="fa-solid fa-play text-[0.65rem]"></i>
+                        <span>Usar</span>
                     </button>
                     <button class="template-card-action secondary" data-action="edit" data-key="${safeKey}" title="Editar template" aria-label="Editar template ${escapeHtml(template.title)}">
-                        ✏️ Editar
+                        <i class="fa-solid fa-pen-to-square text-[0.7rem]"></i>
+                        <span>Editar</span>
                     </button>
                     <button 
                         class="template-card-action favorite ${isFavorite ? 'favorited' : ''}" 
@@ -274,7 +276,7 @@ function createTemplateCard(key, template, isRecent = false) {
                         aria-label="${isFavorite ? 'Remover template dos favoritos' : 'Adicionar template aos favoritos'}"
                         aria-pressed="${isFavorite ? 'true' : 'false'}"
                     >
-                        ${isFavorite ? '★' : '☆'}
+                        <i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-star"></i>
                     </button>
                 </div>
             </div>
