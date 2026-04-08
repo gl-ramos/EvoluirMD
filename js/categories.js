@@ -265,7 +265,7 @@ function renderCategoriesManagementList() {
     
     categories.forEach(category => {
         const usageCount = getCategoryUsageCount(category.id);
-        const canDelete = !category.isDefault && usageCount === 0;
+        const canDelete = !category.isDefault;
         
         const el = document.createElement('div');
         el.className = 'bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-700/50';
@@ -298,12 +298,25 @@ function renderCategoriesManagementList() {
     
     document.querySelectorAll('.delete-category-btn').forEach(btn => 
         btn.addEventListener('click', () => {
+            const categoryId = btn.dataset.id;
+            const category = getCategoryById(categoryId);
+            const usageCount = getCategoryUsageCount(categoryId);
+            const categoryName = category?.name || 'esta categoria';
+
+            const message = usageCount > 0
+                ? `Excluir "${categoryName}"? ${usageCount} template${usageCount !== 1 ? 's serão movidos' : ' será movido'} para "Geral".`
+                : `Tem certeza que deseja excluir "${categoryName}"?`;
+
             const performDelete = () => {
                 try {
-                    deleteCategory(btn.dataset.id);
+                    deleteCategory(categoryId);
                     renderCategoriesManagementList();
                     // Atualiza outras renderizações se necessário
                     if (window.renderDashboard) window.renderDashboard();
+
+                    if (window.showAppNotification) {
+                        window.showAppNotification('Categoria excluída com sucesso.', 'success');
+                    }
                 } catch (error) {
                     if (window.showAppNotification) {
                         window.showAppNotification('Erro ao excluir categoria: ' + error.message, 'error');
@@ -312,11 +325,11 @@ function renderCategoriesManagementList() {
             };
 
             if (window.showConfirmDialog) {
-                window.showConfirmDialog('Tem certeza que deseja excluir esta categoria?', performDelete);
+                window.showConfirmDialog(message, performDelete);
                 return;
             }
 
-            if (confirm('Tem certeza que deseja excluir esta categoria?')) {
+            if (confirm(message)) {
                 performDelete();
             }
         })
