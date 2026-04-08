@@ -11,6 +11,7 @@
 // SELETORES DE ELEMENTOS DE NAVEGAÇÃO
 // ========================================
 
+const logoHomeBtn = document.getElementById('logo-home-btn');
 const dashboardLink = document.getElementById('dashboard-link');
 const manageTemplatesLink = document.getElementById('manage-templates-link');
 const manageCategoriesLink = document.getElementById('manage-categories-link');
@@ -42,6 +43,15 @@ function setupNavigationListeners() {
     setupSidebarListeners();
     setupOnboardingHint();
     setupConfirmDialogListeners();
+
+    if (logoHomeBtn) {
+        logoHomeBtn.addEventListener('click', () => {
+            if (window.showDefaultState) {
+                window.showDefaultState();
+            }
+            closeSidebarOnMobile();
+        });
+    }
 
     // Link para gerenciamento de templates
     if (dashboardLink) {
