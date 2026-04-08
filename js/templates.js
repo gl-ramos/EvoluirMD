@@ -339,8 +339,8 @@ function addCardEventListeners(container) {
 function getTemplatePreview(content) {
     if (!content) return 'Sem conteúdo disponível';
     
-    // Remove placeholders para a prévia
-    const cleaned = content.replace(/\{\{[^}]+\}\}/g, '[campo]');
+    // Remove placeholders para a prévia (formato atual [[campo]] + legado {{campo}})
+    const cleaned = content.replace(/\[\[[^\]]+\]\]|\{\{[^}]+\}\}/g, '[campo]');
     
     // Pega as primeiras linhas
     const lines = cleaned.split('\n').filter(line => line.trim());
