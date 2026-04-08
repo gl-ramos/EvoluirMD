@@ -106,8 +106,11 @@ function deleteCategory(id) {
         throw new Error('Categoria não encontrada');
     }
     
-    if (window.categories[id].isDefault && id === 'geral') {
-        throw new Error('A categoria "Geral" não pode ser excluída');
+    if (window.categories[id].isDefault) {
+        if (id === 'geral') {
+            throw new Error('A categoria "Geral" não pode ser excluída');
+        }
+        throw new Error('Categorias padrão não podem ser excluídas');
     }
     
     // Move todos os templates desta categoria para "Geral"
@@ -262,7 +265,7 @@ function renderCategoriesManagementList() {
     
     categories.forEach(category => {
         const usageCount = getCategoryUsageCount(category.id);
-        const canDelete = category.id !== 'geral' && usageCount === 0;
+        const canDelete = !category.isDefault && usageCount === 0;
         
         const el = document.createElement('div');
         el.className = 'bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-700/50';
