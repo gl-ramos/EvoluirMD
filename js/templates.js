@@ -167,6 +167,9 @@ function renderAllTemplates(filteredTemplates = null) {
 
             if (searchInput) searchInput.value = '';
             if (categoryFilter) categoryFilter.value = '';
+            if (window.syncSearchInputs) {
+                window.syncSearchInputs('', 'dashboard');
+            }
 
             if (window.performSearch) {
                 window.performSearch('', '');
@@ -657,6 +660,11 @@ function initializeSearch() {
             clearTimeout(searchTimeout);
             const query = e.target.value.trim();
             const selectedCategory = categoryFilter ? categoryFilter.value : '';
+
+            // Mantém busca do header sincronizada
+            if (window.syncSearchInputs) {
+                window.syncSearchInputs(query, 'dashboard');
+            }
             
             // Debounce para melhor performance
             searchTimeout = setTimeout(() => {
@@ -668,6 +676,9 @@ function initializeSearch() {
         searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 searchInput.value = '';
+                if (window.syncSearchInputs) {
+                    window.syncSearchInputs('', 'dashboard');
+                }
                 const selectedCategory = categoryFilter ? categoryFilter.value : '';
                 performSearch('', selectedCategory);
             }

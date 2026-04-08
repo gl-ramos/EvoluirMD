@@ -324,23 +324,34 @@ function renderQuickTemplates() {
     });
 }
 
-function handleHeaderSearch(e) {
-    const query = e ? e.target.value.trim() : headerSearch.value.trim();
-    const clearBtn = document.getElementById('clear-search');
-    
-    if (clearBtn) {
-        if (query) {
-            clearBtn.classList.remove('hidden');
-        } else {
-            clearBtn.classList.add('hidden');
-        }
+function syncSearchInputs(query = '', source = 'header') {
+    const normalizedQuery = (query || '').trim();
+
+    const dashboardSearch = document.getElementById('template-search');
+    if (source !== 'dashboard' && dashboardSearch && dashboardSearch.value !== normalizedQuery) {
+        dashboardSearch.value = normalizedQuery;
     }
+
+    if (source !== 'header' && headerSearch && headerSearch.value !== normalizedQuery) {
+        headerSearch.value = normalizedQuery;
+    }
+
+    const clearBtn = document.getElementById('clear-search');
+    if (clearBtn) {
+        clearBtn.classList.toggle('hidden', !normalizedQuery);
+    }
+}
+
+function handleHeaderSearch(e) {
+    const query = e ? e.target.value.trim() : (headerSearch?.value || '').trim();
+    syncSearchInputs(query, 'header');
 
     // Implementa busca global se estivermos no dashboard
     const defaultState = document.getElementById('default-state');
     if (defaultState && !defaultState.classList.contains('hidden')) {
+        const selectedCategory = document.getElementById('category-filter')?.value || '';
         if (window.performSearch) {
-            window.performSearch(query);
+            window.performSearch(query, selectedCategory);
         }
     }
 }
@@ -525,6 +536,7 @@ window.showAppNotification = showAppNotification;
 window.showConfirmDialog = showConfirmDialog;
 window.closeConfirmDialog = closeConfirmDialog;
 window.setActiveNavigationLink = setActiveNavigationLink;
+window.syncSearchInputs = syncSearchInputs;
 
 // Exporta funções para uso em outros módulos
 export {
@@ -536,5 +548,6 @@ export {
     showAppNotification,
     showConfirmDialog,
     closeConfirmDialog,
-    setActiveNavigationLink
+    setActiveNavigationLink,
+    syncSearchInputs
 };
