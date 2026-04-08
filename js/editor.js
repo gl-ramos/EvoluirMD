@@ -199,7 +199,8 @@ function resetAndFocusFirstPlaceholder() {
     if (placeholders.length > 0) {
         // Reseta todos os placeholders
         placeholders.forEach(p => {
-            p.innerHTML = getPlaceholderDisplayText(p.dataset.originalText);
+            // Usa textContent para evitar interpretação de HTML vindo de dados importados
+            p.textContent = getPlaceholderDisplayText(p.dataset.originalText);
             p.classList.remove('active', 'initial-focus', 'placeholder-filled');
             p.removeAttribute('data-skipped');
         });
