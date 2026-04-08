@@ -36,6 +36,7 @@ const confirmModalConfirmBtn = document.getElementById('confirm-modal-confirm');
 const confirmModalCancelBtn = document.getElementById('confirm-modal-cancel');
 const exportDataBtn = document.getElementById('export-data-btn');
 const importDataBtn = document.getElementById('import-data-btn');
+const resetDataBtn = document.getElementById('reset-data-btn');
 const importDataInput = document.getElementById('import-data-input');
 
 let confirmModalOnConfirm = null;
@@ -509,6 +510,27 @@ function setupDataTransferListeners() {
             } finally {
                 importDataInput.value = '';
             }
+        });
+    }
+
+    if (resetDataBtn) {
+        resetDataBtn.addEventListener('click', () => {
+            showConfirmDialog(
+                'Restaurar padrões removerá todos os seus dados atuais e carregará os dados iniciais do sistema. Deseja continuar?',
+                () => {
+                    if (!window.resetDataToDefaults) {
+                        showAppNotification('Funcionalidade de restauração indisponível.', 'error');
+                        return;
+                    }
+
+                    window.resetDataToDefaults();
+                    showAppNotification('Dados restaurados para o padrão inicial.', 'success');
+
+                    if (window.showDefaultState) {
+                        window.showDefaultState();
+                    }
+                }
+            );
         });
     }
 }
