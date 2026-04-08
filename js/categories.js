@@ -273,7 +273,7 @@ function renderCategoriesManagementList() {
     
     document.querySelectorAll('.delete-category-btn').forEach(btn => 
         btn.addEventListener('click', () => {
-            if (confirm('Tem certeza que deseja excluir esta categoria?')) {
+            const performDelete = () => {
                 try {
                     deleteCategory(btn.dataset.id);
                     renderCategoriesManagementList();
@@ -284,6 +284,15 @@ function renderCategoriesManagementList() {
                         window.showAppNotification('Erro ao excluir categoria: ' + error.message, 'error');
                     }
                 }
+            };
+
+            if (window.showConfirmDialog) {
+                window.showConfirmDialog('Tem certeza que deseja excluir esta categoria?', performDelete);
+                return;
+            }
+
+            if (confirm('Tem certeza que deseja excluir esta categoria?')) {
+                performDelete();
             }
         })
     );

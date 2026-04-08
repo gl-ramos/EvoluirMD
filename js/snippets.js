@@ -195,33 +195,45 @@ function handleSaveSnippet(e) {
     // Se estiver criando/renomeando para uma chave existente, pede confirmação
     const isChangingKey = originalKey && newKey !== originalKey;
     const isOverwriting = window.snippets[newKey] && (!originalKey || isChangingKey);
-    if (isOverwriting && !confirm(`Já existe um snippet com a chave ${newKey}. Deseja sobrescrever?`)) {
-        return;
-    }
-    
-    // Se estiver editando e mudou a chave, remove a antiga
-    if (isChangingKey) {
-        delete window.snippets[originalKey];
-    }
-    
-    window.snippets[newKey] = { description, content };
-    
-    // Salva no localStorage
-    if (window.saveSnippetsToStorage) {
-        window.saveSnippetsToStorage();
-    }
-    
-    // Atualiza contadores
-    if (window.updateSnippetCounter) {
-        window.updateSnippetCounter();
-    }
-    
-    closeSnippetModal();
-    renderSnippetsList();
 
-    if (window.showAppNotification) {
-        window.showAppNotification('Snippet salvo com sucesso!', 'success');
+    const performSaveSnippet = () => {
+        // Se estiver editando e mudou a chave, remove a antiga
+        if (isChangingKey) {
+            delete window.snippets[originalKey];
+        }
+
+        window.snippets[newKey] = { description, content };
+
+        // Salva no localStorage
+        if (window.saveSnippetsToStorage) {
+            window.saveSnippetsToStorage();
+        }
+
+        // Atualiza contadores
+        if (window.updateSnippetCounter) {
+            window.updateSnippetCounter();
+        }
+
+        closeSnippetModal();
+        renderSnippetsList();
+
+        if (window.showAppNotification) {
+            window.showAppNotification('Snippet salvo com sucesso!', 'success');
+        }
+    };
+
+    if (isOverwriting) {
+        if (window.showConfirmDialog) {
+            window.showConfirmDialog(`Já existe um snippet com a chave ${newKey}. Deseja sobrescrever?`, performSaveSnippet);
+            return;
+        }
+
+        if (!confirm(`Já existe um snippet com a chave ${newKey}. Deseja sobrescrever?`)) {
+            return;
+        }
     }
+
+    performSaveSnippet();
 }
 
 /**
@@ -229,27 +241,33 @@ function handleSaveSnippet(e) {
  * @param {string} key - Chave do snippet a ser excluído
  */
 function deleteSnippet(key) {
-    const confirmed = confirm(`Tem certeza que deseja excluir o snippet ${key}?`);
-    if (!confirmed) {
+    const performDelete = () => {
+        delete window.snippets[key];
+
+        // Salva no localStorage
+        if (window.saveSnippetsToStorage) {
+            window.saveSnippetsToStorage();
+        }
+
+        // Atualiza contadores
+        if (window.updateSnippetCounter) {
+            window.updateSnippetCounter();
+        }
+
+        renderSnippetsList();
+
+        if (window.showAppNotification) {
+            window.showAppNotification('Snippet excluído com sucesso.', 'success');
+        }
+    };
+
+    if (window.showConfirmDialog) {
+        window.showConfirmDialog(`Tem certeza que deseja excluir o snippet ${key}?`, performDelete);
         return;
     }
 
-    delete window.snippets[key];
-    
-    // Salva no localStorage
-    if (window.saveSnippetsToStorage) {
-        window.saveSnippetsToStorage();
-    }
-    
-    // Atualiza contadores
-    if (window.updateSnippetCounter) {
-        window.updateSnippetCounter();
-    }
-    
-    renderSnippetsList();
-
-    if (window.showAppNotification) {
-        window.showAppNotification('Snippet excluído com sucesso.', 'success');
+    if (confirm(`Tem certeza que deseja excluir o snippet ${key}?`)) {
+        performDelete();
     }
 }
 

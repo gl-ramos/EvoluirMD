@@ -523,23 +523,30 @@ function handleSaveTemplate(e) {
  */
 function deleteTemplate(key) {
     const templateTitle = window.templates?.[key]?.title || 'este template';
-    const confirmed = confirm(`Tem certeza que deseja excluir "${templateTitle}"?`);
-    if (!confirmed) {
+
+    const performDelete = () => {
+        delete window.templates[key];
+
+        // Salva no localStorage
+        if (window.saveTemplatesToStorage) {
+            window.saveTemplatesToStorage();
+        }
+
+        renderTemplatesManagementList();
+        renderDashboard(); // Atualiza o dashboard
+
+        if (window.showAppNotification) {
+            window.showAppNotification('Template excluído com sucesso.', 'success');
+        }
+    };
+
+    if (window.showConfirmDialog) {
+        window.showConfirmDialog(`Tem certeza que deseja excluir "${templateTitle}"?`, performDelete);
         return;
     }
 
-    delete window.templates[key];
-    
-    // Salva no localStorage
-    if (window.saveTemplatesToStorage) {
-        window.saveTemplatesToStorage();
-    }
-    
-    renderTemplatesManagementList();
-    renderDashboard(); // Atualiza o dashboard
-
-    if (window.showAppNotification) {
-        window.showAppNotification('Template excluído com sucesso.', 'success');
+    if (confirm(`Tem certeza que deseja excluir "${templateTitle}"?`)) {
+        performDelete();
     }
 }
 
