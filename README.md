@@ -6,7 +6,7 @@ O EvoluirMD é uma plataforma web desenvolvida para ajudar estudantes de medicin
 
 ## ✨ Funcionalidades Principais
 
-- **Editor de Templates**: Sistema de placeholders editáveis usando sintaxe `{{campo}}`
+- **Editor de Templates**: Sistema de placeholders editáveis usando sintaxe `[[campo]]`
 - **Navegação por Tab**: Navegação rápida entre campos usando Tab/Shift+Tab
 - **Sistema de Snippets**: Atalhos rápidos com digitação de `/` + texto
 - **Gerenciamento de Templates**: Criação, edição e exclusão de templates personalizados
@@ -142,7 +142,7 @@ EvoluirMD/
 {
   "template_key": {
     "title": "Nome do Template",
-    "content": "Conteúdo com {{placeholder}} para campos"
+    "content": "Conteúdo com [[campo]] para áreas editáveis"
   }
 }
 ```

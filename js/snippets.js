@@ -388,9 +388,10 @@ function processSnippetPlaceholders(content) {
     const safeContent = escapeHtml(content);
 
     return safeContent.replace(
-        /\{\{([^}]+)\}\}/g,
-        (match, p1) => {
-            return `<span class="placeholder" data-original-text="${match}">${p1.replace(/_/g, ' ')}</span>`;
+        /\[\[\s*([^\]]+?)\s*\]\]/g,
+        (match, field) => {
+            const label = field.replace(/_/g, ' ');
+            return `<span class="placeholder" data-original-text="${match}">${label}</span>`;
         }
     );
 }

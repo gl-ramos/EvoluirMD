@@ -536,7 +536,10 @@ function handleTabNavigation(e) {
 
         placeholder.classList.remove('active', 'initial-focus');
         const originalText = placeholder.dataset.originalText
-            ? placeholder.dataset.originalText.replace(/[{}]/g, '').replace(/_/g, ' ')
+            ? placeholder.dataset.originalText
+                .replace(/^\[\[\s*([^\]]+?)\s*\]\]$/, '$1')
+                .replace(/[\[\]]/g, '')
+                .replace(/_/g, ' ')
             : placeholder.textContent;
         const currentText = placeholder.textContent.trim();
 

@@ -40,8 +40,24 @@ function escapeHtml(text) {
 // ========================================
 
 /**
+ * Converte token de placeholder (ex: [[campo]]) para texto exibível
+ * @param {string} token
+ * @returns {string}
+ */
+function getPlaceholderDisplayText(token) {
+    if (!token) return '';
+
+    const bracketMatch = token.match(/^\[\[\s*([^\]]+?)\s*\]\]$/);
+    if (bracketMatch) {
+        return bracketMatch[1].replace(/_/g, ' ');
+    }
+
+    return token.replace(/[\[\]]/g, '').replace(/_/g, ' ');
+}
+
+/**
  * Carrega um template no editor
- * Converte placeholders {{texto}} em elementos editáveis
+ * Converte placeholders [[texto]] em elementos editáveis
  * @param {string} templateKey - Chave do template a ser carregado
  */
 function loadTemplate(templateKey) {
@@ -57,12 +73,13 @@ function loadTemplate(templateKey) {
         window.updateTemplateUsage(templateKey);
     }
 
-    // Escapa HTML para prevenir injeção e converte placeholders {{texto}} em elementos editáveis
+    // Escapa HTML para prevenir injeção e converte placeholders [[texto]]
     const safeTemplateContent = escapeHtml(template.content);
     const contentWithPlaceholders = safeTemplateContent.replace(
-        /\{\{([^}]+)\}\}/g,
-        (match, p1) => {
-            return `<span class="placeholder" data-original-text="${match}">${p1.replace(/_/g, ' ')}</span>`;
+        /\[\[\s*([^\]]+?)\s*\]\]/g,
+        (match, field) => {
+            const label = field.replace(/_/g, ' ');
+            return `<span class="placeholder" data-original-text="${match}">${label}</span>`;
         }
     );
 
@@ -149,7 +166,7 @@ function resetAndFocusFirstPlaceholder() {
     if (placeholders.length > 0) {
         // Reseta todos os placeholders
         placeholders.forEach(p => {
-            p.innerHTML = p.dataset.originalText.replace(/[{}]/g, '').replace(/_/g, ' ');
+            p.innerHTML = getPlaceholderDisplayText(p.dataset.originalText);
             p.classList.remove('active', 'initial-focus', 'placeholder-filled');
             p.removeAttribute('data-skipped');
         });
@@ -189,10 +206,10 @@ async function copyFinalNote() {
 
         // Substitui placeholders vazios pelo texto original
         editorClone.querySelectorAll('.placeholder').forEach(p => {
-            const originalText = p.dataset.originalText.replace(/[{}]/g, '').replace(/_/g, ' ');
+            const originalText = getPlaceholderDisplayText(p.dataset.originalText);
             const currentText = p.textContent.trim();
 
-            // Se não foi preenchido (ou foi limpo), mantém token original {{campo}}
+            // Se não foi preenchido (ou foi limpo), mantém token original do template
             if (currentText === '' || currentText === originalText) {
                 p.textContent = p.dataset.originalText;
             }

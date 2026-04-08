@@ -16,6 +16,7 @@ const templateModal = document.getElementById('template-modal');
 const templateForm = document.getElementById('template-form');
 const createNewTemplateBtn = document.getElementById('create-new-template-btn');
 const cancelTemplateBtn = document.getElementById('cancel-template-btn');
+const insertTemplatePlaceholderBtn = document.getElementById('insert-template-placeholder-btn');
 let lastFocusedElementBeforeTemplateModal = null;
 
 // ========================================
@@ -756,6 +757,23 @@ function filterTemplates(query = '', categoryId = '') {
 /**
  * Configura os event listeners de templates
  */
+function insertTemplatePlaceholderAtCursor() {
+    const contentInput = document.getElementById('template-content-input');
+    if (!contentInput) return;
+
+    const insertion = '[[campo]]';
+    const cursorStart = contentInput.selectionStart ?? contentInput.value.length;
+    const cursorEnd = contentInput.selectionEnd ?? contentInput.value.length;
+
+    contentInput.value = `${contentInput.value.slice(0, cursorStart)}${insertion}${contentInput.value.slice(cursorEnd)}`;
+    contentInput.focus();
+
+    // Posiciona cursor sobre "campo" para edição imediata
+    const fieldStart = cursorStart + 2;
+    const fieldEnd = cursorStart + insertion.length - 2;
+    contentInput.setSelectionRange(fieldStart, fieldEnd);
+}
+
 function setupTemplatesListeners() {
     // Event listeners para botões de templates
     if (createNewTemplateBtn) {
@@ -764,6 +782,10 @@ function setupTemplatesListeners() {
     
     if (cancelTemplateBtn) {
         cancelTemplateBtn.addEventListener('click', closeTemplateModal);
+    }
+
+    if (insertTemplatePlaceholderBtn) {
+        insertTemplatePlaceholderBtn.addEventListener('click', insertTemplatePlaceholderAtCursor);
     }
     
     if (templateForm) {

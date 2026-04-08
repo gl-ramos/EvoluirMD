@@ -281,7 +281,7 @@
                     <input type="text" id="snippet-desc-input" class="w-full bg-[#1F1F1F] border border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]" required>
                 </div>
                 <div class="mb-6">
-                    <label for="snippet-content-input" class="block text-sm font-medium text-gray-300 mb-1">Conteúdo (use {{placeholder}} para campos editáveis)</label>
+                    <label for="snippet-content-input" class="block text-sm font-medium text-gray-300 mb-1">Conteúdo (use [[campo]] para campos editáveis)</label>
                     <textarea id="snippet-content-input" rows="8" class="w-full bg-[#1F1F1F] border border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]" required></textarea>
                 </div>
                 <div class="flex justify-end space-x-4">
@@ -309,7 +309,10 @@
                     </select>
                 </div>
                 <div class="mb-6">
-                    <label for="template-content-input" class="block text-sm font-medium text-gray-300 mb-1">Conteúdo (use {{placeholder}} para campos)</label>
+                    <div class="flex items-center justify-between mb-1 gap-3">
+                        <label for="template-content-input" class="block text-sm font-medium text-gray-300">Conteúdo (use [[campo]] para áreas editáveis, ex.: [[diagnostico]])</label>
+                        <button type="button" id="insert-template-placeholder-btn" class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-100 font-medium py-1 px-2 rounded-md">Inserir campo</button>
+                    </div>
                     <textarea id="template-content-input" rows="12" class="w-full bg-[#1F1F1F] border border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]" required></textarea>
                 </div>
                 <div class="flex justify-end space-x-4">
