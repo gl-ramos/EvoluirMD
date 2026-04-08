@@ -87,49 +87,76 @@ function createCategoryMapping() {
 }
 
 /**
+ * Faz parse seguro de uma chave do localStorage
+ * @param {string} key - Chave do localStorage
+ * @param {Object} fallback - Valor padrão em caso de erro
+ * @returns {Object} Valor parseado ou fallback
+ */
+function safeParseStorageItem(key, fallback) {
+    const rawValue = localStorage.getItem(key);
+    if (!rawValue) {
+        return fallback;
+    }
+
+    try {
+        return JSON.parse(rawValue);
+    } catch (error) {
+        console.warn(`⚠️ Dados inválidos em ${key}. Restaurando padrão.`, error);
+        localStorage.removeItem(key);
+        return fallback;
+    }
+}
+
+/**
+ * Cria snippets padrão em novo objeto
+ * @returns {Object}
+ */
+function createDefaultSnippets() {
+    return Object.entries(DEFAULT_SNIPPETS).reduce((acc, [key, snippet]) => {
+        acc[key] = { ...snippet };
+        return acc;
+    }, {});
+}
+
+/**
+ * Cria templates padrão em novo formato
+ * @returns {Object}
+ */
+function createDefaultTemplates() {
+    const now = Date.now();
+    const templates = {};
+
+    for (const key in DEFAULT_TEMPLATES) {
+        templates[key] = {
+            ...DEFAULT_TEMPLATES[key],
+            lastUsed: null,
+            usageCount: 0,
+            isFavorite: false,
+            createdAt: now
+        };
+    }
+
+    return templates;
+}
+
+/**
  * Carrega dados salvos no localStorage
  * Inicializa templates, snippets e categorias padrão se não existirem
  */
 function loadDataFromStorage() {
-    // Carrega categorias salvas
-    const storedCategories = localStorage.getItem('evoluirMD_categories');
-    if (storedCategories) {
-        window.categories = JSON.parse(storedCategories);
-    } else {
-        // Categorias padrão para novos usuários (baseadas nas categorias médicas)
-        window.categories = createDefaultCategories();
-        saveCategoriesToStorage();
-    }
+    // Carrega categorias salvas com parse seguro
+    window.categories = safeParseStorageItem('evoluirMD_categories', createDefaultCategories());
 
-    // Carrega snippets salvos
-    const storedSnippets = localStorage.getItem('evoluirMD_snippets');
-    if (storedSnippets) {
-        window.snippets = JSON.parse(storedSnippets);
-    } else {
-        // Snippets padrão para novos usuários
-        window.snippets = DEFAULT_SNIPPETS;
-        saveSnippetsToStorage();
-    }
-    
-    // Carrega templates salvos
-    const storedTemplates = localStorage.getItem('evoluirMD_templates');
-    if (storedTemplates) {
-        window.templates = JSON.parse(storedTemplates);
-    } else {
-        // Templates padrão para novos usuários
-        const now = Date.now();
-        window.templates = {};
-        for (const key in DEFAULT_TEMPLATES) {
-            window.templates[key] = {
-                ...DEFAULT_TEMPLATES[key],
-                lastUsed: null,
-                usageCount: 0,
-                isFavorite: false,
-                createdAt: now
-            };
-        }
-        saveTemplatesToStorage();
-    }
+    // Carrega snippets salvos com parse seguro
+    window.snippets = safeParseStorageItem('evoluirMD_snippets', createDefaultSnippets());
+
+    // Carrega templates salvos com parse seguro
+    window.templates = safeParseStorageItem('evoluirMD_templates', createDefaultTemplates());
+
+    // Garante persistência caso algum dado tenha sido restaurado
+    saveCategoriesToStorage();
+    saveSnippetsToStorage();
+    saveTemplatesToStorage();
     
     // Migra templates e categorias existentes para o novo formato
     migrateTemplatesFormat();
