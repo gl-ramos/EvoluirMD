@@ -579,6 +579,13 @@ function handleSaveTemplate(e) {
     const categorySelect = document.getElementById('template-category-select');
     const categoryId = categorySelect ? categorySelect.value : 'geral';
     let key = document.getElementById('template-original-key').value;
+
+    if (!title || !content) {
+        if (window.showAppNotification) {
+            window.showAppNotification('Título e conteúdo do template são obrigatórios.', 'error');
+        }
+        return;
+    }
     
     if (!key) {
         // Criando novo template
