@@ -32,7 +32,7 @@
         <div class="mb-6">
             <!-- New Document Button with Dropdown -->
             <div class="relative">
-                <button id="new-document-btn" class="w-full bg-[#3B82F6] hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition duration-200 flex items-center justify-center space-x-2">
+                <button id="new-document-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="new-document-dropdown" class="w-full bg-[#3B82F6] hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition duration-200 flex items-center justify-center space-x-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -40,15 +40,15 @@
                 </button>
                 
                 <!-- Dropdown Menu -->
-                <div id="new-document-dropdown" class="hidden absolute top-full left-0 right-0 mt-2 bg-[#2D2D2D] border border-gray-600 rounded-lg shadow-xl z-50">
-                    <a href="#" id="blank-editor-link" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700/50 transition rounded-t-lg">
+                <div id="new-document-dropdown" role="menu" aria-label="Opções de novo documento" class="hidden absolute top-full left-0 right-0 mt-2 bg-[#2D2D2D] border border-gray-600 rounded-lg shadow-xl z-50">
+                    <a href="#" id="blank-editor-link" role="menuitem" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700/50 transition rounded-t-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                         Editor em Branco
                     </a>
                     <div class="border-t border-gray-600"></div>
-                    <a href="#" id="from-template-link" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700/50 transition">
+                    <a href="#" id="from-template-link" role="menuitem" class="flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700/50 transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-3 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>

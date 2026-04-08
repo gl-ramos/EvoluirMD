@@ -77,6 +77,14 @@ function setupNavigationListeners() {
                 closeDropdown();
             }
         });
+
+        // Fecha dropdown com Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && newDocumentDropdown && !newDocumentDropdown.classList.contains('hidden')) {
+                closeDropdown();
+                newDocumentBtn.focus();
+            }
+        });
     }
 
     // Link para editor em branco
@@ -152,13 +160,19 @@ function toggleDropdown() {
 function openDropdown() {
     if (newDocumentDropdown) {
         newDocumentDropdown.classList.remove('hidden');
+        newDocumentBtn?.setAttribute('aria-expanded', 'true');
         renderQuickTemplates();
+
+        // foco inicial no primeiro item para navegação por teclado
+        const firstMenuItem = newDocumentDropdown.querySelector('[role="menuitem"], .template-quick-item');
+        firstMenuItem?.focus();
     }
 }
 
 function closeDropdown() {
     if (newDocumentDropdown) {
         newDocumentDropdown.classList.add('hidden');
+        newDocumentBtn?.setAttribute('aria-expanded', 'false');
     }
 }
 
@@ -194,6 +208,7 @@ function renderQuickTemplates() {
         const item = document.createElement('a');
         item.href = '#';
         item.className = 'template-quick-item';
+        item.setAttribute('role', 'menuitem');
         item.textContent = template.title;
         item.addEventListener('click', (e) => {
             e.preventDefault();
