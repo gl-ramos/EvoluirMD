@@ -75,6 +75,21 @@ body {
     outline: none !important;
 }
 
+/* Reforça foco visível para navegação por teclado */
+#editor-content:focus-visible {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.7);
+    border-radius: 8px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.75);
+    outline-offset: 2px;
+}
+
 /* ========================================
    TEMPLATE PLACEHOLDER STYLING
    ======================================== */
