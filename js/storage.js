@@ -108,6 +108,27 @@ function safeParseStorageItem(key, fallback) {
 }
 
 /**
+ * Salva chave no localStorage com tratamento de erros
+ * @param {string} key
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function safeSetStorageItem(key, value) {
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+    } catch (error) {
+        console.error(`❌ Falha ao salvar ${key} no localStorage.`, error);
+
+        if (window.showAppNotification) {
+            window.showAppNotification('Não foi possível salvar seus dados localmente. Verifique espaço do navegador.', 'error');
+        }
+
+        return false;
+    }
+}
+
+/**
  * Cria snippets padrão em novo objeto
  * @returns {Object}
  */
@@ -168,7 +189,7 @@ function loadDataFromStorage() {
  */
 function saveCategoriesToStorage() {
     if (window.categories) {
-        localStorage.setItem('evoluirMD_categories', JSON.stringify(window.categories));
+        safeSetStorageItem('evoluirMD_categories', window.categories);
     }
 }
 
@@ -177,7 +198,7 @@ function saveCategoriesToStorage() {
  */
 function saveSnippetsToStorage() {
     if (window.snippets) {
-        localStorage.setItem('evoluirMD_snippets', JSON.stringify(window.snippets));
+        safeSetStorageItem('evoluirMD_snippets', window.snippets);
     }
 }
 
@@ -186,7 +207,7 @@ function saveSnippetsToStorage() {
  */
 function saveTemplatesToStorage() {
     if (window.templates) {
-        localStorage.setItem('evoluirMD_templates', JSON.stringify(window.templates));
+        safeSetStorageItem('evoluirMD_templates', window.templates);
     }
 }
 
