@@ -60,16 +60,18 @@ function getPlaceholderDisplayText(token) {
  * Converte placeholders [[texto]] em elementos editáveis
  * @param {string} templateKey - Chave do template a ser carregado
  */
-function loadTemplate(templateKey) {
+function loadTemplate(templateKey, options = {}) {
     if (!window.templates || !window.templates[templateKey]) return;
+
+    const { trackUsage = true } = options;
 
     editorMode = 'template';
     currentTemplateId = templateKey;
     window.currentTemplateId = templateKey;
     const template = window.templates[templateKey];
 
-    // Atualiza estatísticas de uso do template
-    if (window.updateTemplateUsage) {
+    // Atualiza estatísticas de uso do template apenas quando for abertura real de uso
+    if (trackUsage && window.updateTemplateUsage) {
         window.updateTemplateUsage(templateKey);
     }
 
@@ -86,6 +88,7 @@ function loadTemplate(templateKey) {
     setEditorTitle(template.title);
     setEditorContent(contentWithPlaceholders);
     setupEditorForMode();
+    setCopyButtonDefaultText();
 
     resetAndFocusFirstPlaceholder();
 }
@@ -101,6 +104,7 @@ function loadBlankEditor() {
     setEditorTitle('Editor em Branco');
     setEditorContent('');
     setupEditorForMode();
+    setCopyButtonDefaultText();
 
     // Foca no editor
     setTimeout(() => {
@@ -148,12 +152,22 @@ function setupEditorForMode() {
         window.addKeyboardListenerToElement(editorContent);
     }
 
-    // Configura placeholder baseado no modo
+    // Configura pseudo-placeholder baseado no modo (contenteditable não suporta placeholder nativo)
     if (editorMode === 'blank') {
-        editorContent.setAttribute('placeholder', 'Comece a escrever ou use snippets com /...');
+        editorContent.setAttribute('data-placeholder', 'Comece a escrever ou use snippets com /...');
     } else {
-        editorContent.removeAttribute('placeholder');
+        editorContent.removeAttribute('data-placeholder');
     }
+}
+
+/**
+ * Atualiza texto padrão do botão de cópia de acordo com o modo atual
+ */
+function setCopyButtonDefaultText() {
+    const copyButtonText = document.getElementById('copy-button-text');
+    if (!copyButtonText) return;
+
+    copyButtonText.textContent = editorMode === 'template' ? '📋 COPIAR NOTA' : '📋 COPIAR TEXTO';
 }
 
 /**
@@ -260,8 +274,8 @@ async function copyFinalNote() {
  */
 function clearEditor() {
     if (editorMode === 'template' && currentTemplateId) {
-        // Recarrega o template atual
-        loadTemplate(currentTemplateId);
+        // Recarrega o template atual sem incrementar métricas de uso
+        loadTemplate(currentTemplateId, { trackUsage: false });
     } else {
         // Limpa o editor em branco
         setEditorContent('');
