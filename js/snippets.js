@@ -442,6 +442,42 @@ function focusFirstNewPlaceholder(insertedPlaceholders = []) {
         }
     }, 10);
 }
+
+/**
+ * Insere snippet no fim do editor sem reescrever innerHTML/textContent completo
+ * @param {string} content - Conteúdo original do snippet
+ */
+function appendSnippetAtEditorEnd(content) {
+    const editorContent = document.getElementById('editor-content');
+    if (!editorContent) return;
+
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(editorContent);
+    range.collapse(false);
+
+    const contentWithPlaceholders = processSnippetPlaceholders(content);
+
+    if (contentWithPlaceholders.includes('<span class="placeholder"')) {
+        const fragment = range.createContextualFragment(contentWithPlaceholders);
+        const insertedPlaceholders = Array.from(fragment.querySelectorAll('.placeholder'));
+        range.insertNode(fragment);
+
+        range.collapse(false);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        focusFirstNewPlaceholder(insertedPlaceholders);
+        return;
+    }
+
+    const textNode = document.createTextNode(content);
+    range.insertNode(textNode);
+    range.setStartAfter(textNode);
+    range.collapse(true);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+}
+
 function insertSnippet(key) {
     if (!window.snippets || !window.snippets[key]) return;
     
@@ -499,17 +535,8 @@ function insertSnippet(key) {
         
     } catch (error) {
         console.error('Erro ao inserir snippet:', error);
-        // Fallback: insere no final do editor se possível
-        const editorContent = document.getElementById('editor-content');
-        if (editorContent) {
-            const contentWithPlaceholders = processSnippetPlaceholders(snippet.content);
-            if (contentWithPlaceholders.includes('<span class="placeholder"')) {
-                editorContent.innerHTML += contentWithPlaceholders;
-                focusFirstNewPlaceholder();
-            } else {
-                editorContent.textContent += snippet.content;
-            }
-        }
+        // Fallback: insere no final do editor preservando o DOM já existente
+        appendSnippetAtEditorEnd(snippet.content);
     } finally {
         hideSnippetTooltip();
     }
