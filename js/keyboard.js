@@ -35,22 +35,27 @@ function handleKeyboardEvents(e) {
     
     // Navegação por Tab entre placeholders
     if (e.key === 'Tab') {
-        
-        // Verifica se estamos dentro de um editor ou se há placeholders disponíveis
+        // Verifica se estamos dentro de um editor visível
         const editorContent = document.getElementById('editor-content');
-        const activeEditor = editorContent && !editorContent.closest('#editor-state').classList.contains('hidden') 
-            ? editorContent 
+        const activeEditor = editorContent && !editorContent.closest('#editor-state').classList.contains('hidden')
+            ? editorContent
             : null;
-        
+
         if (activeEditor) {
+            // Só intercepta TAB quando o evento realmente vem do editor
+            const target = e.target;
+            const eventFromEditor = target instanceof Node && activeEditor.contains(target);
+
+            if (!eventFromEditor) {
+                return;
+            }
+
             const placeholders = activeEditor.querySelectorAll('.placeholder:not([data-skipped="true"])');
-            
             if (placeholders.length > 0) {
                 handleTabNavigation(e);
                 return;
             }
         }
-        
     }
 }
 
@@ -405,79 +410,97 @@ function findNearestPlaceholder(cursorPos, placeholdersWithPos, direction) {
 function handleTabNavigation(e) {
     // Encontra o editor ativo
     const editorContent = document.getElementById('editor-content');
-    const activeEditor = editorContent && !editorContent.closest('#editor-state').classList.contains('hidden') 
-        ? editorContent 
+    const activeEditor = editorContent && !editorContent.closest('#editor-state').classList.contains('hidden')
+        ? editorContent
         : editorContent; // fallback
-    
+
     if (!activeEditor) {
         return;
     }
-    
-    // Obtém todos os placeholders disponíveis (não preenchidos)
-    const availablePlaceholders = Array.from(activeEditor.querySelectorAll('.placeholder:not([data-skipped="true"])'));
-    
-    if (availablePlaceholders.length === 0) {
+
+    const allPlaceholders = Array.from(activeEditor.querySelectorAll('.placeholder'));
+    if (allPlaceholders.length === 0) {
         return;
     }
-    
-    // IMPORTANTE: Previne comportamento padrão do Tab
+
+    // Descobre placeholder atual (ativo ou onde está o cursor)
+    let currentPlaceholder = activeEditor.querySelector('.placeholder.active');
+    if (!currentPlaceholder) {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+            let node = selection.getRangeAt(0).startContainer;
+            while (node && node !== activeEditor) {
+                if (node.nodeType === Node.ELEMENT_NODE && node.classList?.contains('placeholder')) {
+                    currentPlaceholder = node;
+                    break;
+                }
+                node = node.parentNode;
+            }
+        }
+    }
+
+    const updateCurrentPlaceholderState = (placeholder) => {
+        if (!placeholder) return;
+
+        placeholder.classList.remove('active', 'initial-focus');
+        const originalText = placeholder.dataset.originalText
+            ? placeholder.dataset.originalText.replace(/[{}]/g, '').replace(/_/g, ' ')
+            : placeholder.textContent;
+        const currentText = placeholder.textContent.trim();
+
+        if (currentText === '' || currentText === originalText) {
+            placeholder.innerHTML = originalText;
+            placeholder.classList.remove('placeholder-filled');
+            placeholder.removeAttribute('data-skipped');
+        } else {
+            placeholder.classList.add('placeholder-filled');
+            // Placeholders preenchidos saem da navegação por TAB
+            placeholder.setAttribute('data-skipped', 'true');
+        }
+    };
+
+    const findNextNavigable = (startIndex, step) => {
+        for (let i = startIndex + step; i >= 0 && i < allPlaceholders.length; i += step) {
+            const candidate = allPlaceholders[i];
+            if (candidate.getAttribute('data-skipped') !== 'true') {
+                return candidate;
+            }
+        }
+        return null;
+    };
+
+    // Atualiza estado do campo atual antes de decidir o próximo
+    updateCurrentPlaceholderState(currentPlaceholder);
+
+    let targetPlaceholder = null;
+
+    if (!currentPlaceholder) {
+        const navigablePlaceholders = Array.from(activeEditor.querySelectorAll('.placeholder:not([data-skipped="true"])'));
+        if (navigablePlaceholders.length === 0) {
+            return; // deixa TAB nativo
+        }
+
+        targetPlaceholder = e.shiftKey
+            ? navigablePlaceholders[navigablePlaceholders.length - 1]
+            : navigablePlaceholders[0];
+    } else {
+        const currentIndex = allPlaceholders.indexOf(currentPlaceholder);
+        if (currentIndex === -1) {
+            return;
+        }
+
+        targetPlaceholder = findNextNavigable(currentIndex, e.shiftKey ? -1 : 1);
+
+        // Sem próximo placeholder navegável: deixa TAB nativo sair do editor
+        if (!targetPlaceholder) {
+            return;
+        }
+    }
+
+    // Navegação interna entre placeholders
     e.preventDefault();
     e.stopPropagation();
-    
-    // Obtém posição atual do cursor
-    const cursorPos = getCurrentCursorPosition();
-    
-    if (!cursorPos) {
-        // Fallback: vai para primeiro ou último placeholder
-        const targetPlaceholder = e.shiftKey ? availablePlaceholders[availablePlaceholders.length - 1] : availablePlaceholders[0];
-        if (targetPlaceholder) {
-            activatePlaceholder(targetPlaceholder);
-        }
-        return;
-    }
-    
-    // Remove estado ativo de qualquer placeholder atual
-    const currentlyActive = activeEditor.querySelector('.placeholder.active');
-    if (currentlyActive) {
-        currentlyActive.classList.remove('active', 'initial-focus');
-        const originalText = currentlyActive.dataset.originalText ? 
-            currentlyActive.dataset.originalText.replace(/[{}]/g, '').replace(/_/g, ' ') :
-            currentlyActive.textContent;
-        const currentText = currentlyActive.textContent.trim();
-        
-        if (currentText === '' || currentText === originalText) {
-            currentlyActive.innerHTML = originalText;
-            currentlyActive.classList.remove('placeholder-filled');
-            currentlyActive.removeAttribute('data-skipped');
-        } else {
-            currentlyActive.classList.add('placeholder-filled');
-            currentlyActive.setAttribute('data-skipped', 'true');
-        }
-    }
-    
-    // Recalcula placeholders disponíveis após marcar o atual
-    const newAvailablePlaceholders = Array.from(activeEditor.querySelectorAll('.placeholder:not([data-skipped="true"])'));
-    
-    if (newAvailablePlaceholders.length === 0) {
-        if (currentlyActive) currentlyActive.blur();
-        return;
-    }
-    
-    // Encontra próximo placeholder baseado na posição do cursor
-    const direction = e.shiftKey ? 'backward' : 'forward';
-    const placeholdersWithPositions = getPlaceholderSpatialPositions(newAvailablePlaceholders);
-    
-    const nextPlaceholder = findNearestPlaceholder(cursorPos, placeholdersWithPositions, direction);
-    
-    // Ativa o próximo placeholder
-    if (nextPlaceholder && nextPlaceholder.element) {
-        activatePlaceholder(nextPlaceholder.element);
-    } else {
-        const fallbackPlaceholder = e.shiftKey ? newAvailablePlaceholders[newAvailablePlaceholders.length - 1] : newAvailablePlaceholders[0];
-        if (fallbackPlaceholder) {
-            activatePlaceholder(fallbackPlaceholder);
-        }
-    }
+    activatePlaceholder(targetPlaceholder);
 }
 
 /**
