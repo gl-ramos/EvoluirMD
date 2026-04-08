@@ -167,12 +167,29 @@ function handleSaveSnippet(e) {
     const content = document.getElementById('snippet-content-input').value.trim();
     
     // Valida se a chave começa com /
-    if (!newKey.startsWith('/')) { 
-        return; 
+    if (!newKey.startsWith('/')) {
+        if (window.showAppNotification) {
+            window.showAppNotification('O atalho do snippet deve começar com "/".', 'error');
+        }
+        return;
+    }
+
+    if (!description || !content) {
+        if (window.showAppNotification) {
+            window.showAppNotification('Descrição e conteúdo são obrigatórios.', 'error');
+        }
+        return;
+    }
+
+    // Se estiver criando/renomeando para uma chave existente, pede confirmação
+    const isChangingKey = originalKey && newKey !== originalKey;
+    const isOverwriting = window.snippets[newKey] && (!originalKey || isChangingKey);
+    if (isOverwriting && !confirm(`Já existe um snippet com a chave ${newKey}. Deseja sobrescrever?`)) {
+        return;
     }
     
     // Se estiver editando e mudou a chave, remove a antiga
-    if (originalKey && newKey !== originalKey) {
+    if (isChangingKey) {
         delete window.snippets[originalKey];
     }
     
@@ -190,6 +207,10 @@ function handleSaveSnippet(e) {
     
     closeSnippetModal();
     renderSnippetsList();
+
+    if (window.showAppNotification) {
+        window.showAppNotification('Snippet salvo com sucesso!', 'success');
+    }
 }
 
 /**
