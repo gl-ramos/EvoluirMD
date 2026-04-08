@@ -13,7 +13,7 @@
 
 let keyboardListenersInitialized = false;
 
-const MODAL_IDS = ['snippet-modal', 'template-modal', 'category-modal'];
+const MODAL_IDS = ['confirm-modal', 'snippet-modal', 'template-modal', 'category-modal'];
 
 /**
  * Handler principal para eventos de teclado
@@ -90,6 +90,11 @@ function getVisibleModal() {
 }
 
 function closeVisibleModal(modalId) {
+    if (modalId === 'confirm-modal' && window.closeConfirmDialog) {
+        window.closeConfirmDialog();
+        return;
+    }
+
     if (modalId === 'snippet-modal' && window.closeSnippetModal) {
         window.closeSnippetModal();
         return;

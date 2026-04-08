@@ -28,10 +28,19 @@ const appSidebar = document.getElementById('app-sidebar');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 const onboardingHint = document.getElementById('onboarding-hint');
 const dismissOnboardingHintBtn = document.getElementById('dismiss-onboarding-hint');
+const confirmModal = document.getElementById('confirm-modal');
+const confirmModalMessage = document.getElementById('confirm-modal-message');
+const confirmModalConfirmBtn = document.getElementById('confirm-modal-confirm');
+const confirmModalCancelBtn = document.getElementById('confirm-modal-cancel');
+
+let confirmModalOnConfirm = null;
+let confirmModalOnCancel = null;
+let lastFocusedElementBeforeConfirmModal = null;
 
 function setupNavigationListeners() {
     setupSidebarListeners();
     setupOnboardingHint();
+    setupConfirmDialogListeners();
 
     // Link para gerenciamento de templates
     if (dashboardLink) {
@@ -357,6 +366,60 @@ function setupOnboardingHint() {
     });
 }
 
+function setupConfirmDialogListeners() {
+    if (!confirmModal || !confirmModalConfirmBtn || !confirmModalCancelBtn) return;
+
+    confirmModalConfirmBtn.addEventListener('click', () => {
+        const callback = confirmModalOnConfirm;
+        closeConfirmDialog();
+        if (typeof callback === 'function') callback();
+    });
+
+    confirmModalCancelBtn.addEventListener('click', () => {
+        const callback = confirmModalOnCancel;
+        closeConfirmDialog();
+        if (typeof callback === 'function') callback();
+    });
+
+    confirmModal.addEventListener('click', (e) => {
+        if (e.target === confirmModal) {
+            closeConfirmDialog();
+        }
+    });
+}
+
+function showConfirmDialog(message, onConfirm, onCancel = null) {
+    if (!confirmModal || !confirmModalMessage) {
+        if (window.confirm(message)) {
+            if (typeof onConfirm === 'function') onConfirm();
+        } else if (typeof onCancel === 'function') {
+            onCancel();
+        }
+        return;
+    }
+
+    lastFocusedElementBeforeConfirmModal = document.activeElement;
+    confirmModalMessage.textContent = message;
+    confirmModalOnConfirm = onConfirm;
+    confirmModalOnCancel = onCancel;
+    confirmModal.classList.remove('hidden');
+    confirmModal.setAttribute('aria-hidden', 'false');
+    confirmModalConfirmBtn.focus();
+}
+
+function closeConfirmDialog() {
+    if (!confirmModal) return;
+
+    confirmModal.classList.add('hidden');
+    confirmModal.setAttribute('aria-hidden', 'true');
+    confirmModalOnConfirm = null;
+    confirmModalOnCancel = null;
+
+    if (lastFocusedElementBeforeConfirmModal instanceof HTMLElement) {
+        lastFocusedElementBeforeConfirmModal.focus();
+    }
+}
+
 /**
  * Exibe uma notificação não-bloqueante na interface
  * @param {string} message - Mensagem a ser exibida
@@ -426,6 +489,8 @@ window.showBlankEditor = showBlankEditor;
 window.updateModeIndicator = updateModeIndicator;
 window.updateSnippetCounter = updateSnippetCounter;
 window.showAppNotification = showAppNotification;
+window.showConfirmDialog = showConfirmDialog;
+window.closeConfirmDialog = closeConfirmDialog;
 
 // Exporta funções para uso em outros módulos
 export {
@@ -434,5 +499,7 @@ export {
     showBlankEditor,
     updateModeIndicator,
     updateSnippetCounter,
-    showAppNotification
+    showAppNotification,
+    showConfirmDialog,
+    closeConfirmDialog
 };
