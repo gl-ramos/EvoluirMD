@@ -34,6 +34,14 @@ const confirmModal = document.getElementById('confirm-modal');
 const confirmModalMessage = document.getElementById('confirm-modal-message');
 const confirmModalConfirmBtn = document.getElementById('confirm-modal-confirm');
 const confirmModalCancelBtn = document.getElementById('confirm-modal-cancel');
+const exportDataBtn = document.getElementById('export-data-btn');
+const importDataBtn = document.getElementById('import-data-btn');
+const resetDataBtn = document.getElementById('reset-data-btn');
+const importDataInput = document.getElementById('import-data-input');
+const settingsMenuBtn = document.getElementById('settings-menu-btn');
+const settingsMenuDropdown = document.getElementById('settings-menu-dropdown');
+const settingsMenuWrapper = document.getElementById('settings-menu-wrapper');
+const settingsMenuArrow = document.getElementById('settings-menu-arrow');
 
 let confirmModalOnConfirm = null;
 let confirmModalOnCancel = null;
@@ -43,6 +51,8 @@ function setupNavigationListeners() {
     setupSidebarListeners();
     setupOnboardingHint();
     setupConfirmDialogListeners();
+    setupDataTransferListeners();
+    setupSettingsMenuListeners();
 
     if (logoHomeBtn) {
         logoHomeBtn.addEventListener('click', () => {
@@ -211,6 +221,8 @@ function closeSidebar(restoreToggleFocus = false) {
     appSidebar.classList.add('-translate-x-full');
     sidebarOverlay?.classList.add('hidden');
     sidebarToggleBtn?.setAttribute('aria-expanded', 'false');
+    closeDropdown();
+    closeSettingsMenu();
 
     if (restoreToggleFocus) {
         sidebarToggleBtn?.focus();
@@ -248,6 +260,7 @@ function toggleDropdown() {
     if (newDocumentDropdown) {
         const isHidden = newDocumentDropdown.classList.contains('hidden');
         if (isHidden) {
+            closeSettingsMenu();
             openDropdown();
         } else {
             closeDropdown();
@@ -272,6 +285,59 @@ function closeDropdown() {
         newDocumentDropdown.classList.add('hidden');
         newDocumentBtn?.setAttribute('aria-expanded', 'false');
     }
+}
+
+function setupSettingsMenuListeners() {
+    if (!settingsMenuBtn || !settingsMenuDropdown || !settingsMenuWrapper) return;
+
+    settingsMenuBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleSettingsMenu();
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!settingsMenuWrapper.contains(e.target)) {
+            closeSettingsMenu();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !settingsMenuDropdown.classList.contains('hidden')) {
+            closeSettingsMenu();
+            settingsMenuBtn.focus();
+        }
+    });
+}
+
+function toggleSettingsMenu() {
+    if (!settingsMenuDropdown) return;
+
+    const isHidden = settingsMenuDropdown.classList.contains('hidden');
+    if (isHidden) {
+        closeDropdown();
+        openSettingsMenu();
+    } else {
+        closeSettingsMenu();
+    }
+}
+
+function openSettingsMenu() {
+    if (!settingsMenuDropdown) return;
+
+    settingsMenuDropdown.classList.remove('hidden');
+    settingsMenuBtn?.setAttribute('aria-expanded', 'true');
+    settingsMenuArrow?.classList.add('rotate-180');
+
+    const firstItem = settingsMenuDropdown.querySelector('[role="menuitem"]');
+    firstItem?.focus();
+}
+
+function closeSettingsMenu() {
+    if (!settingsMenuDropdown) return;
+
+    settingsMenuDropdown.classList.add('hidden');
+    settingsMenuBtn?.setAttribute('aria-expanded', 'false');
+    settingsMenuArrow?.classList.remove('rotate-180');
 }
 
 function renderQuickTemplates() {
@@ -450,6 +516,88 @@ function setupConfirmDialogListeners() {
             closeConfirmDialog();
         }
     });
+}
+
+function setupDataTransferListeners() {
+    if (exportDataBtn) {
+        exportDataBtn.addEventListener('click', () => {
+            closeSettingsMenu();
+
+            if (!window.exportDataAsJson) {
+                showAppNotification('Funcionalidade de exportação indisponível.', 'error');
+                return;
+            }
+
+            window.exportDataAsJson();
+            showAppNotification('Backup JSON exportado com sucesso.', 'success');
+        });
+    }
+
+    if (importDataBtn && importDataInput) {
+        importDataBtn.addEventListener('click', () => {
+            closeSettingsMenu();
+            importDataInput.click();
+        });
+
+        importDataInput.addEventListener('change', async (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            try {
+                const fileContent = await file.text();
+                const parsed = JSON.parse(fileContent);
+
+                const performImport = () => {
+                    if (!window.importDataFromJson) {
+                        showAppNotification('Funcionalidade de importação indisponível.', 'error');
+                        return;
+                    }
+
+                    try {
+                        window.importDataFromJson(parsed);
+                        showAppNotification('Dados importados com sucesso.', 'success');
+
+                        if (window.showDefaultState) {
+                            window.showDefaultState();
+                        }
+                    } catch (importError) {
+                        showAppNotification(importError.message || 'Erro ao importar dados.', 'error');
+                    }
+                };
+
+                showConfirmDialog(
+                    'Importar este arquivo substituirá todos os dados atuais (templates, snippets e categorias). Deseja continuar?',
+                    performImport
+                );
+            } catch (error) {
+                showAppNotification('Arquivo JSON inválido.', 'error');
+            } finally {
+                importDataInput.value = '';
+            }
+        });
+    }
+
+    if (resetDataBtn) {
+        resetDataBtn.addEventListener('click', () => {
+            closeSettingsMenu();
+            showConfirmDialog(
+                'Restaurar padrões removerá todos os seus dados atuais e carregará os dados iniciais do sistema. Deseja continuar?',
+                () => {
+                    if (!window.resetDataToDefaults) {
+                        showAppNotification('Funcionalidade de restauração indisponível.', 'error');
+                        return;
+                    }
+
+                    window.resetDataToDefaults();
+                    showAppNotification('Dados restaurados para o padrão inicial.', 'success');
+
+                    if (window.showDefaultState) {
+                        window.showDefaultState();
+                    }
+                }
+            );
+        });
+    }
 }
 
 function showConfirmDialog(message, onConfirm, onCancel = null) {

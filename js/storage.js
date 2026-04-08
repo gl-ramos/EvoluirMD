@@ -336,6 +336,148 @@ function getRecentlyUsedTemplates(limit = 6) {
         .map(([key, template]) => ({ key, template }));
 }
 
+/**
+ * Gera snapshot completo dos dados para exportação
+ * @returns {Object}
+ */
+function createExportSnapshot() {
+    return {
+        app: 'EvoluirMD',
+        schemaVersion: 1,
+        exportedAt: new Date().toISOString(),
+        data: {
+            templates: window.templates || {},
+            snippets: window.snippets || {},
+            categories: window.categories || {}
+        }
+    };
+}
+
+/**
+ * Exporta os dados da aplicação em arquivo JSON
+ */
+function exportDataAsJson() {
+    const snapshot = createExportSnapshot();
+    const jsonContent = JSON.stringify(snapshot, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `evoluirmd-backup-${timestamp}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * Normaliza payload bruto de importação
+ * @param {Object} rawPayload
+ * @returns {Object}
+ */
+function normalizeImportPayload(rawPayload) {
+    if (!rawPayload || typeof rawPayload !== 'object') {
+        throw new Error('Arquivo inválido. Estrutura JSON não reconhecida.');
+    }
+
+    const source = rawPayload.data && typeof rawPayload.data === 'object'
+        ? rawPayload.data
+        : rawPayload;
+
+    const { templates, snippets, categories } = source;
+
+    if (!templates || typeof templates !== 'object' || Array.isArray(templates)) {
+        throw new Error('Campo "templates" ausente ou inválido.');
+    }
+    if (!snippets || typeof snippets !== 'object' || Array.isArray(snippets)) {
+        throw new Error('Campo "snippets" ausente ou inválido.');
+    }
+    if (!categories || typeof categories !== 'object' || Array.isArray(categories)) {
+        throw new Error('Campo "categories" ausente ou inválido.');
+    }
+
+    return {
+        templates: { ...templates },
+        snippets: { ...snippets },
+        categories: { ...categories }
+    };
+}
+
+/**
+ * Importa dados a partir de objeto JSON
+ * @param {Object} payload
+ */
+function importDataFromJson(payload) {
+    const normalized = normalizeImportPayload(payload);
+
+    window.templates = normalized.templates;
+    window.snippets = normalized.snippets;
+    window.categories = normalized.categories;
+
+    migrateTemplatesFormat();
+    migrateCategoriesFormat();
+
+    saveTemplatesToStorage();
+    saveSnippetsToStorage();
+    saveCategoriesToStorage();
+
+    if (window.updateNavigationCounters) {
+        window.updateNavigationCounters();
+    }
+
+    if (window.renderDashboard) {
+        window.renderDashboard();
+    }
+
+    if (window.renderTemplatesManagementList) {
+        window.renderTemplatesManagementList();
+    }
+
+    if (window.renderSnippetsList) {
+        window.renderSnippetsList();
+    }
+
+    if (window.renderCategoriesManagementList) {
+        window.renderCategoriesManagementList();
+    }
+}
+
+/**
+ * Restaura dados padrão de fábrica
+ */
+function resetDataToDefaults() {
+    window.categories = createDefaultCategories();
+    window.snippets = createDefaultSnippets();
+    window.templates = createDefaultTemplates();
+
+    saveCategoriesToStorage();
+    saveSnippetsToStorage();
+    saveTemplatesToStorage();
+
+    if (window.updateNavigationCounters) {
+        window.updateNavigationCounters();
+    }
+
+    if (window.renderDashboard) {
+        window.renderDashboard();
+    }
+
+    if (window.renderTemplatesManagementList) {
+        window.renderTemplatesManagementList();
+    }
+
+    if (window.renderSnippetsList) {
+        window.renderSnippetsList();
+    }
+
+    if (window.renderCategoriesManagementList) {
+        window.renderCategoriesManagementList();
+    }
+}
+
 // ========================================
 // EXPOSIÇÃO DE FUNÇÕES
 // ========================================
@@ -350,6 +492,10 @@ window.migrateCategoriesFormat = migrateCategoriesFormat;
 window.updateTemplateUsage = updateTemplateUsage;
 window.toggleTemplateFavorite = toggleTemplateFavorite;
 window.getRecentlyUsedTemplates = getRecentlyUsedTemplates;
+window.createExportSnapshot = createExportSnapshot;
+window.exportDataAsJson = exportDataAsJson;
+window.importDataFromJson = importDataFromJson;
+window.resetDataToDefaults = resetDataToDefaults;
 
 // Exporta funções para uso em outros módulos
 export {
@@ -361,5 +507,9 @@ export {
     migrateCategoriesFormat,
     updateTemplateUsage,
     toggleTemplateFavorite,
-    getRecentlyUsedTemplates
+    getRecentlyUsedTemplates,
+    createExportSnapshot,
+    exportDataAsJson,
+    importDataFromJson,
+    resetDataToDefaults
 };

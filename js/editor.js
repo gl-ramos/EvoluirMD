@@ -161,13 +161,32 @@ function setupEditorForMode() {
 }
 
 /**
+ * Gera HTML do label do botão de cópia com ícones Font Awesome
+ * @param {'default'|'success'|'error'} state
+ * @returns {string}
+ */
+function getCopyButtonLabelMarkup(state = 'default') {
+    if (state === 'success') {
+        return '<i class="fa-solid fa-check mr-2"></i>COPIADO!';
+    }
+
+    if (state === 'error') {
+        return '<i class="fa-solid fa-triangle-exclamation mr-2"></i>Erro ao copiar';
+    }
+
+    return editorMode === 'template'
+        ? '<i class="fa-regular fa-copy mr-2"></i>COPIAR NOTA'
+        : '<i class="fa-regular fa-copy mr-2"></i>COPIAR TEXTO';
+}
+
+/**
  * Atualiza texto padrão do botão de cópia de acordo com o modo atual
  */
 function setCopyButtonDefaultText() {
     const copyButtonText = document.getElementById('copy-button-text');
     if (!copyButtonText) return;
 
-    copyButtonText.textContent = editorMode === 'template' ? '📋 COPIAR NOTA' : '📋 COPIAR TEXTO';
+    copyButtonText.innerHTML = getCopyButtonLabelMarkup('default');
 }
 
 /**
@@ -255,16 +274,16 @@ async function copyFinalNote() {
         // Feedback visual de sucesso
         copyButton.classList.remove('bg-[#3B82F6]', 'hover:bg-blue-600');
         copyButton.classList.add('bg-green-500');
-        copyButtonText.textContent = editorMode === 'template' ? '✔ Copiado!' : '✅ COPIADO!';
+        copyButtonText.innerHTML = getCopyButtonLabelMarkup('success');
 
         // Restaura o botão após 2 segundos
         setTimeout(() => {
             copyButton.classList.add('bg-[#3B82F6]', 'hover:bg-blue-600');
             copyButton.classList.remove('bg-green-500');
-            copyButtonText.textContent = editorMode === 'template' ? '📋 COPIAR NOTA' : '📋 COPIAR TEXTO';
+            copyButtonText.innerHTML = getCopyButtonLabelMarkup('default');
         }, 2000);
     } catch (err) {
-        copyButtonText.textContent = 'Erro ao copiar';
+        copyButtonText.innerHTML = getCopyButtonLabelMarkup('error');
         console.error('Falha ao copiar texto: ', err);
     }
 }
