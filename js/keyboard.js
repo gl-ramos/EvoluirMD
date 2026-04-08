@@ -13,12 +13,28 @@
 
 let keyboardListenersInitialized = false;
 
+const MODAL_IDS = ['snippet-modal', 'template-modal', 'category-modal'];
+
 /**
  * Handler principal para eventos de teclado
  * Gerencia navegação por Tab, Escape, setas e Enter
  */
 function handleKeyboardEvents(e) {
-    
+    const visibleModal = getVisibleModal();
+
+    // Prioriza interações de modal (trap de foco e fechamento)
+    if (visibleModal) {
+        if (e.key === 'Tab') {
+            trapFocusInModal(e, visibleModal);
+            return;
+        }
+
+        if (e.key === 'Escape') {
+            closeVisibleModal(visibleModal.id);
+            return;
+        }
+    }
+
     const isTooltipVisible = !document.getElementById('snippet-tooltip')?.classList.contains('hidden');
     
     // Tecla Escape fecha modais e tooltips
@@ -26,6 +42,7 @@ function handleKeyboardEvents(e) {
         if (window.hideSnippetTooltip) window.hideSnippetTooltip();
         if (window.closeSnippetModal) window.closeSnippetModal();
         if (window.closeTemplateModal) window.closeTemplateModal();
+        if (window.closeCategoryModal) window.closeCategoryModal();
         return;
     }
     
@@ -58,6 +75,74 @@ function handleKeyboardEvents(e) {
                 return;
             }
         }
+    }
+}
+
+function getVisibleModal() {
+    for (const id of MODAL_IDS) {
+        const modal = document.getElementById(id);
+        if (modal && !modal.classList.contains('hidden')) {
+            return modal;
+        }
+    }
+
+    return null;
+}
+
+function closeVisibleModal(modalId) {
+    if (modalId === 'snippet-modal' && window.closeSnippetModal) {
+        window.closeSnippetModal();
+        return;
+    }
+
+    if (modalId === 'template-modal' && window.closeTemplateModal) {
+        window.closeTemplateModal();
+        return;
+    }
+
+    if (modalId === 'category-modal' && window.closeCategoryModal) {
+        window.closeCategoryModal();
+    }
+}
+
+function getFocusableElements(container) {
+    if (!container) return [];
+
+    const selectors = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])'
+    ];
+
+    return Array.from(container.querySelectorAll(selectors.join(','))).filter(el => {
+        const isHidden = el.offsetParent === null && getComputedStyle(el).position !== 'fixed';
+        return !isHidden;
+    });
+}
+
+function trapFocusInModal(e, modal) {
+    const focusables = getFocusableElements(modal);
+    if (focusables.length === 0) {
+        e.preventDefault();
+        return;
+    }
+
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+
+    if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+        return;
+    }
+
+    if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
     }
 }
 
