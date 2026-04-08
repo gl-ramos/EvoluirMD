@@ -217,7 +217,7 @@ function createTemplateCard(key, template, isRecent = false) {
     // Busca a categoria pelo ID ou usa valores padrão
     const category = window.getCategoryById ? window.getCategoryById(template.categoryId) : null;
     const categoryName = category ? category.name : (template.category || 'Geral');
-    const categoryColor = category ? category.color : '#3B82F6';
+    const categoryColor = sanitizeHexColor(category ? category.color : '#3B82F6');
     
     // Gera uma cor mais escura para o hover
     const categoryColorDark = adjustColor(categoryColor, -20);
@@ -386,8 +386,14 @@ function abbreviateText(text, maxLength) {
  * @param {number} percent - Porcentagem de ajuste (-100 a 100)
  * @returns {string} Cor ajustada
  */
+function sanitizeHexColor(color) {
+    const normalized = String(color || '').trim().toUpperCase();
+    return /^#[0-9A-F]{6}$/.test(normalized) ? normalized : '#3B82F6';
+}
+
 function adjustColor(color, percent) {
-    const num = parseInt(color.replace("#", ""), 16);
+    const safeColor = sanitizeHexColor(color);
+    const num = parseInt(safeColor.replace("#", ""), 16);
     const amt = Math.round(2.55 * percent);
     const R = (num >> 16) + amt;
     const G = (num >> 8 & 0x00FF) + amt;
