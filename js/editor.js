@@ -24,6 +24,17 @@ const clearButton = document.getElementById('clear-button');
 let editorMode = 'blank'; // 'template' ou 'blank'
 let currentTemplateId = null;
 
+/**
+ * Escapa HTML para prevenir XSS em conteúdo de template/snippet
+ * @param {string} text
+ * @returns {string}
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // ========================================
 // FUNÇÕES DO EDITOR UNIFICADO
 // ========================================
@@ -46,8 +57,9 @@ function loadTemplate(templateKey) {
         window.updateTemplateUsage(templateKey);
     }
 
-    // Converte placeholders {{texto}} em elementos HTML editáveis
-    const contentWithPlaceholders = template.content.replace(
+    // Escapa HTML para prevenir injeção e converte placeholders {{texto}} em elementos editáveis
+    const safeTemplateContent = escapeHtml(template.content);
+    const contentWithPlaceholders = safeTemplateContent.replace(
         /\{\{([^}]+)\}\}/g,
         (match, p1) => {
             return `<span class="placeholder" data-original-text="${match}">${p1.replace(/_/g, ' ')}</span>`;

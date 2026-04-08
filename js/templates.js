@@ -11,7 +11,6 @@
 // SELETORES DE ELEMENTOS DE TEMPLATES
 // ========================================
 
-const templateListSidebar = document.getElementById('template-list-sidebar');
 const templatesListContainer = document.getElementById('templates-list-container');
 const templateModal = document.getElementById('template-modal');
 const templateForm = document.getElementById('template-form');
@@ -204,8 +203,8 @@ function addCardEventListeners(container) {
                 return;
             }
             const key = card.dataset.key;
-            if (key && window.loadTemplate) {
-                window.loadTemplate(key);
+            if (key && window.useTemplate) {
+                window.useTemplate(key);
             }
         });
     });
@@ -274,11 +273,12 @@ function adjustColor(color, percent) {
  * @param {string} key - Chave do template
  */
 function useTemplate(key) {
-    if (window.loadTemplate) {
-        window.loadTemplate(key);
-    }
+    // Mostra o editor antes para garantir foco/seleção inicial dos placeholders
     if (window.showEditorState) {
         window.showEditorState();
+    }
+    if (window.loadTemplate) {
+        window.loadTemplate(key);
     }
 }
 
@@ -311,36 +311,56 @@ function toggleFavorite(key) {
  */
 function renderTemplatesManagementList() {
     if (!templatesListContainer) return;
-    
+
     templatesListContainer.innerHTML = '';
-    
+
     if (!window.templates || Object.keys(window.templates).length === 0) {
-        templatesListContainer.innerHTML = `<p class="text-gray-400">Você ainda não criou nenhum template.</p>`;
+        const emptyMessage = document.createElement('p');
+        emptyMessage.className = 'text-gray-400';
+        emptyMessage.textContent = 'Você ainda não criou nenhum template.';
+        templatesListContainer.appendChild(emptyMessage);
         return;
     }
-    
+
     // Cria um card para cada template
     for (const key in window.templates) {
         const template = window.templates[key];
         const el = document.createElement('div');
         el.className = 'bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-700/50';
-        el.innerHTML = `
-            <div>
-                <h3 class="font-bold text-lg text-gray-200">${template.title}</h3>
-            </div>
-            <div class="space-x-2">
-                <button data-key="${key}" class="edit-template-btn text-blue-400 hover:text-blue-300">Editar</button>
-                <button data-key="${key}" class="delete-template-btn text-red-400 hover:text-red-300">Excluir</button>
-            </div>
-        `;
+
+        const infoDiv = document.createElement('div');
+        const titleEl = document.createElement('h3');
+        titleEl.className = 'font-bold text-lg text-gray-200';
+        titleEl.textContent = template.title;
+        infoDiv.appendChild(titleEl);
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'space-x-2';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'edit-template-btn text-blue-400 hover:text-blue-300';
+        editBtn.dataset.key = key;
+        editBtn.textContent = 'Editar';
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-template-btn text-red-400 hover:text-red-300';
+        deleteBtn.dataset.key = key;
+        deleteBtn.textContent = 'Excluir';
+
+        actionsDiv.appendChild(editBtn);
+        actionsDiv.appendChild(deleteBtn);
+
+        el.appendChild(infoDiv);
+        el.appendChild(actionsDiv);
+
         templatesListContainer.appendChild(el);
     }
-    
+
     // Adiciona event listeners para os botões
-    document.querySelectorAll('.edit-template-btn').forEach(btn => 
+    templatesListContainer.querySelectorAll('.edit-template-btn').forEach(btn =>
         btn.addEventListener('click', () => openTemplateModal(btn.dataset.key))
     );
-    document.querySelectorAll('.delete-template-btn').forEach(btn => 
+    templatesListContainer.querySelectorAll('.delete-template-btn').forEach(btn =>
         btn.addEventListener('click', () => deleteTemplate(btn.dataset.key))
     );
 }
@@ -609,6 +629,7 @@ window.renderDashboard = renderDashboard;
 window.renderRecentTemplates = renderRecentTemplates;
 window.renderAllTemplates = renderAllTemplates;
 window.renderCategoryFilter = renderCategoryFilter;
+window.performSearch = performSearch;
 window.useTemplate = useTemplate;
 window.editTemplate = editTemplate;
 window.toggleFavorite = toggleFavorite;
@@ -625,6 +646,7 @@ export {
     renderRecentTemplates,
     renderAllTemplates,
     renderCategoryFilter,
+    performSearch,
     useTemplate,
     editTemplate,
     toggleFavorite

@@ -24,6 +24,17 @@ const cancelSnippetBtn = document.getElementById('cancel-snippet-btn');
 
 let currentSnippetTrigger = null;
 
+/**
+ * Escapa HTML para prevenir XSS
+ * @param {string} text
+ * @returns {string}
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // ========================================
 // FUNÇÕES DE GERENCIAMENTO DE SNIPPETS
 // ========================================
@@ -34,41 +45,69 @@ let currentSnippetTrigger = null;
  */
 function renderSnippetsList() {
     if (!snippetsListContainer) return;
-    
+
     snippetsListContainer.innerHTML = '';
-    
+
     if (!window.snippets || Object.keys(window.snippets).length === 0) {
-        snippetsListContainer.innerHTML = `<p class="text-gray-400">Você ainda não criou nenhum snippet.</p>`;
+        const emptyMessage = document.createElement('p');
+        emptyMessage.className = 'text-gray-400';
+        emptyMessage.textContent = 'Você ainda não criou nenhum snippet.';
+        snippetsListContainer.appendChild(emptyMessage);
+
         // Atualiza contador
         if (window.updateSnippetCounter) {
             window.updateSnippetCounter();
         }
         return;
     }
-    
+
     // Cria um card para cada snippet
     for (const key in window.snippets) {
         const snippet = window.snippets[key];
+
         const snippetEl = document.createElement('div');
         snippetEl.className = 'bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-700/50';
-        snippetEl.innerHTML = `
-            <div>
-                <h3 class="font-bold text-lg text-gray-200">${key}</h3>
-                <p class="text-gray-400">${snippet.description}</p>
-            </div>
-            <div class="space-x-2">
-                <button data-key="${key}" class="edit-snippet-btn text-blue-400 hover:text-blue-300">Editar</button>
-                <button data-key="${key}" class="delete-snippet-btn text-red-400 hover:text-red-300">Excluir</button>
-            </div>
-        `;
+
+        const infoDiv = document.createElement('div');
+
+        const keyTitle = document.createElement('h3');
+        keyTitle.className = 'font-bold text-lg text-gray-200';
+        keyTitle.textContent = key;
+
+        const descriptionP = document.createElement('p');
+        descriptionP.className = 'text-gray-400';
+        descriptionP.textContent = snippet.description;
+
+        infoDiv.appendChild(keyTitle);
+        infoDiv.appendChild(descriptionP);
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'space-x-2';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'edit-snippet-btn text-blue-400 hover:text-blue-300';
+        editBtn.dataset.key = key;
+        editBtn.textContent = 'Editar';
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-snippet-btn text-red-400 hover:text-red-300';
+        deleteBtn.dataset.key = key;
+        deleteBtn.textContent = 'Excluir';
+
+        actionsDiv.appendChild(editBtn);
+        actionsDiv.appendChild(deleteBtn);
+
+        snippetEl.appendChild(infoDiv);
+        snippetEl.appendChild(actionsDiv);
+
         snippetsListContainer.appendChild(snippetEl);
     }
-    
+
     // Adiciona event listeners para os botões
-    document.querySelectorAll('.edit-snippet-btn').forEach(btn => 
+    snippetsListContainer.querySelectorAll('.edit-snippet-btn').forEach(btn =>
         btn.addEventListener('click', () => openSnippetModal(btn.dataset.key))
     );
-    document.querySelectorAll('.delete-snippet-btn').forEach(btn => 
+    snippetsListContainer.querySelectorAll('.delete-snippet-btn').forEach(btn =>
         btn.addEventListener('click', () => deleteSnippet(btn.dataset.key))
     );
 
@@ -199,20 +238,33 @@ function showSnippetTooltip(filteredSnippets, rect) {
         item.className = 'snippet-item';
         if (index === 0) item.classList.add('active');
         item.dataset.key = key;
-        item.innerHTML = `<span class="snippet-key">${key}</span><br><span class="snippet-desc">${description}</span>`;
-        
+
+        const keySpan = document.createElement('span');
+        keySpan.className = 'snippet-key';
+        keySpan.textContent = key;
+
+        const breakLine = document.createElement('br');
+
+        const descSpan = document.createElement('span');
+        descSpan.className = 'snippet-desc';
+        descSpan.textContent = description;
+
+        item.appendChild(keySpan);
+        item.appendChild(breakLine);
+        item.appendChild(descSpan);
+
         // Evento de clique para inserir o snippet
-        item.addEventListener('click', (e) => { 
-            e.preventDefault(); 
-            insertSnippet(key); 
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            insertSnippet(key);
         });
-        
+
         // Evento de hover para destacar o item
         item.addEventListener('mouseover', (e) => {
             snippetTooltip.querySelectorAll('.snippet-item').forEach(el => el.classList.remove('active'));
             e.currentTarget.classList.add('active');
         });
-        
+
         snippetTooltip.appendChild(item);
     });
     
@@ -239,8 +291,10 @@ function hideSnippetTooltip() {
  * @returns {string} - Conteúdo com placeholders convertidos
  */
 function processSnippetPlaceholders(content) {
-    // Converte placeholders {{texto}} em elementos HTML editáveis
-    return content.replace(
+    // Escapa conteúdo para prevenir injeção de HTML e depois converte placeholders
+    const safeContent = escapeHtml(content);
+
+    return safeContent.replace(
         /\{\{([^}]+)\}\}/g,
         (match, p1) => {
             return `<span class="placeholder" data-original-text="${match}">${p1.replace(/_/g, ' ')}</span>`;
@@ -249,46 +303,47 @@ function processSnippetPlaceholders(content) {
 }
 
 /**
- * Foca no primeiro placeholder de um conjunto específico de elementos
- * @param {DocumentFragment} insertedFragment - Fragmento inserido contendo placeholders
+ * Foca no primeiro placeholder recém-inserido
+ * @param {Element[]} insertedPlaceholders - Lista de placeholders inseridos
  */
-function focusFirstNewPlaceholder(insertedFragment) {
-    // Se o fragmento foi inserido, precisamos buscar os placeholders no DOM
-    // Vamos procurar pelos placeholders mais recentemente inseridos
+function focusFirstNewPlaceholder(insertedPlaceholders = []) {
     setTimeout(() => {
         const editorContent = document.getElementById('editor-content');
         if (!editorContent) return;
-        
-        // Busca todos os placeholders no editor
-        const allPlaceholders = editorContent.querySelectorAll('.placeholder');
-        
-        // Procura o primeiro placeholder que não tem as classes de estado
-        // (indicando que é um placeholder recém-inserido)
-        const newPlaceholder = Array.from(allPlaceholders).find(p => 
-            !p.classList.contains('active') && 
+
+        // Prioriza placeholders recém-inseridos (quando disponíveis)
+        let newPlaceholder = insertedPlaceholders.find(p =>
+            p &&
+            p.isConnected &&
             !p.classList.contains('placeholder-filled') &&
             !p.hasAttribute('data-skipped')
         );
-        
+
+        // Fallback: busca no DOM
+        if (!newPlaceholder) {
+            const allPlaceholders = editorContent.querySelectorAll('.placeholder');
+            newPlaceholder = Array.from(allPlaceholders).find(p =>
+                !p.classList.contains('active') &&
+                !p.classList.contains('placeholder-filled') &&
+                !p.hasAttribute('data-skipped')
+            );
+        }
+
         if (newPlaceholder) {
-            // Limpa qualquer seleção anterior
             const currentActive = editorContent.querySelector('.placeholder.active');
             if (currentActive) {
                 currentActive.classList.remove('active', 'initial-focus');
             }
-            
-            // Ativa o novo placeholder
+
             newPlaceholder.classList.add('active', 'initial-focus');
             newPlaceholder.focus();
-            
-            // Seleciona todo o conteúdo do placeholder
+
             const selection = window.getSelection();
             const range = document.createRange();
             range.selectNodeContents(newPlaceholder);
             selection.removeAllRanges();
             selection.addRange(range);
-            
-            // Remove a animação após 2 segundos
+
             setTimeout(() => newPlaceholder.classList.remove('initial-focus'), 2000);
         }
     }, 10);
@@ -326,15 +381,16 @@ function insertSnippet(key) {
         if (contentWithPlaceholders.includes('<span class="placeholder"')) {
             // Se tem placeholders, insere como HTML usando createContextualFragment para preservar ordem
             const fragment = range.createContextualFragment(contentWithPlaceholders);
+            const insertedPlaceholders = Array.from(fragment.querySelectorAll('.placeholder'));
             range.insertNode(fragment);
-            
+
             // Posiciona o cursor após o conteúdo inserido
             range.collapse(false);
             selection.removeAllRanges();
             selection.addRange(range);
-            
+
             // Foca no primeiro placeholder dos elementos recém-inseridos
-            focusFirstNewPlaceholder(fragment);
+            focusFirstNewPlaceholder(insertedPlaceholders);
         } else {
             // Se não tem placeholders, insere como texto simples
             const textNode = document.createTextNode(snippet.content);
