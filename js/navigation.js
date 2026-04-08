@@ -34,6 +34,9 @@ const confirmModal = document.getElementById('confirm-modal');
 const confirmModalMessage = document.getElementById('confirm-modal-message');
 const confirmModalConfirmBtn = document.getElementById('confirm-modal-confirm');
 const confirmModalCancelBtn = document.getElementById('confirm-modal-cancel');
+const exportDataBtn = document.getElementById('export-data-btn');
+const importDataBtn = document.getElementById('import-data-btn');
+const importDataInput = document.getElementById('import-data-input');
 
 let confirmModalOnConfirm = null;
 let confirmModalOnCancel = null;
@@ -43,6 +46,7 @@ function setupNavigationListeners() {
     setupSidebarListeners();
     setupOnboardingHint();
     setupConfirmDialogListeners();
+    setupDataTransferListeners();
 
     if (logoHomeBtn) {
         logoHomeBtn.addEventListener('click', () => {
@@ -450,6 +454,63 @@ function setupConfirmDialogListeners() {
             closeConfirmDialog();
         }
     });
+}
+
+function setupDataTransferListeners() {
+    if (exportDataBtn) {
+        exportDataBtn.addEventListener('click', () => {
+            if (!window.exportDataAsJson) {
+                showAppNotification('Funcionalidade de exportação indisponível.', 'error');
+                return;
+            }
+
+            window.exportDataAsJson();
+            showAppNotification('Backup JSON exportado com sucesso.', 'success');
+        });
+    }
+
+    if (importDataBtn && importDataInput) {
+        importDataBtn.addEventListener('click', () => {
+            importDataInput.click();
+        });
+
+        importDataInput.addEventListener('change', async (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            try {
+                const fileContent = await file.text();
+                const parsed = JSON.parse(fileContent);
+
+                const performImport = () => {
+                    if (!window.importDataFromJson) {
+                        showAppNotification('Funcionalidade de importação indisponível.', 'error');
+                        return;
+                    }
+
+                    try {
+                        window.importDataFromJson(parsed);
+                        showAppNotification('Dados importados com sucesso.', 'success');
+
+                        if (window.showDefaultState) {
+                            window.showDefaultState();
+                        }
+                    } catch (importError) {
+                        showAppNotification(importError.message || 'Erro ao importar dados.', 'error');
+                    }
+                };
+
+                showConfirmDialog(
+                    'Importar este arquivo substituirá todos os dados atuais (templates, snippets e categorias). Deseja continuar?',
+                    performImport
+                );
+            } catch (error) {
+                showAppNotification('Arquivo JSON inválido.', 'error');
+            } finally {
+                importDataInput.value = '';
+            }
+        });
+    }
 }
 
 function showConfirmDialog(message, onConfirm, onCancel = null) {
