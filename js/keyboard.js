@@ -607,6 +607,31 @@ function handleEnterFromPlaceholder(e) {
 }
 
 /**
+ * Tocar/clicar fora do placeholder conclui o campo atual
+ * (equivalente ao Enter/Tab), sem impedir o clique alvo.
+ * @param {PointerEvent} e
+ */
+function handleTapOutsidePlaceholder(e) {
+    const editorContent = document.getElementById('editor-content');
+    const activeEditor = editorContent && !editorContent.closest('#editor-state').classList.contains('hidden')
+        ? editorContent
+        : null;
+
+    if (!activeEditor) return;
+
+    const currentPlaceholder = getCurrentPlaceholder(activeEditor);
+    if (!currentPlaceholder) return;
+
+    const target = e.target;
+    if (!(target instanceof Node)) return;
+
+    // Mantém edição normal quando tocando no próprio placeholder ativo
+    if (currentPlaceholder.contains(target)) return;
+
+    updatePlaceholderStateOnExit(currentPlaceholder);
+}
+
+/**
  * Gerencia navegação por Tab entre placeholders com consciência de posição do cursor
  * @param {KeyboardEvent} e - Evento de teclado
  */
@@ -684,6 +709,7 @@ function setupKeyboardListeners() {
 
     // Único listener global para evitar duplicação de eventos
     document.addEventListener('keydown', handleKeyboardEvents);
+    document.addEventListener('pointerdown', handleTapOutsidePlaceholder);
     keyboardListenersInitialized = true;
 
     // Mantido por compatibilidade com módulos antigos.
