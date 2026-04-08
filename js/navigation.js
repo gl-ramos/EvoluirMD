@@ -388,8 +388,13 @@ function updateModeIndicator(mode, text) {
 
 function updateSnippetCounter() {
     const snippetCount = window.snippets ? Object.keys(window.snippets).length : 0;
-    // Note: header-snippet-count element doesn't exist in HTML yet
-    // Future enhancement: Add snippet counter to header if needed
+    const snippetCounterEl = document.getElementById('header-snippet-count');
+
+    if (!snippetCounterEl) return;
+
+    snippetCounterEl.textContent = String(snippetCount);
+    snippetCounterEl.classList.toggle('hidden', snippetCount === 0);
+    snippetCounterEl.setAttribute('aria-label', `${snippetCount} snippet${snippetCount !== 1 ? 's' : ''}`);
 }
 
 function setupOnboardingHint() {
