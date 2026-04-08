@@ -175,7 +175,7 @@ function resetAndFocusFirstPlaceholder() {
  * Copia a nota final para a área de transferência
  * Adapta-se ao modo do editor (template ou blank)
  */
-function copyFinalNote() {
+async function copyFinalNote() {
     const copyButtonText = document.getElementById('copy-button-text');
     const clipboardHelper = document.getElementById('clipboard-helper');
 
@@ -190,7 +190,10 @@ function copyFinalNote() {
         // Substitui placeholders vazios pelo texto original
         editorClone.querySelectorAll('.placeholder').forEach(p => {
             const originalText = p.dataset.originalText.replace(/[{}]/g, '').replace(/_/g, ' ');
-            if (p.textContent.trim() === originalText) {
+            const currentText = p.textContent.trim();
+
+            // Se não foi preenchido (ou foi limpo), mantém token original {{campo}}
+            if (currentText === '' || currentText === originalText) {
                 p.textContent = p.dataset.originalText;
             }
         });
@@ -201,42 +204,36 @@ function copyFinalNote() {
         textToCopy = editorContent.textContent;
     }
 
-    // Copia para a área de transferência
-    if (clipboardHelper) {
-        clipboardHelper.value = textToCopy;
-        clipboardHelper.select();
-    }
-
     try {
-        document.execCommand('copy');
+        // API moderna de clipboard
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(textToCopy);
+        } else {
+            // Fallback para navegadores/contexts sem suporte
+            if (!clipboardHelper) {
+                throw new Error('Clipboard helper indisponível para fallback');
+            }
+            clipboardHelper.value = textToCopy;
+            clipboardHelper.select();
+            const copied = document.execCommand('copy');
+            if (!copied) {
+                throw new Error('Falha no fallback de cópia');
+            }
+        }
 
         // Feedback visual de sucesso
         copyButton.classList.remove('bg-[#3B82F6]', 'hover:bg-blue-600');
         copyButton.classList.add('bg-green-500');
-        
-        if (editorMode === 'template') {
-            copyButtonText.innerHTML = `✔ Copiado!`;
-        } else {
-            copyButtonText.textContent = '✅ COPIADO!';
-        }
+        copyButtonText.textContent = editorMode === 'template' ? '✔ Copiado!' : '✅ COPIADO!';
 
         // Restaura o botão após 2 segundos
         setTimeout(() => {
             copyButton.classList.add('bg-[#3B82F6]', 'hover:bg-blue-600');
             copyButton.classList.remove('bg-green-500');
-            
-            if (editorMode === 'template') {
-                copyButtonText.textContent = '📋 COPIAR NOTA';
-            } else {
-                copyButtonText.textContent = '📋 COPIAR TEXTO';
-            }
+            copyButtonText.textContent = editorMode === 'template' ? '📋 COPIAR NOTA' : '📋 COPIAR TEXTO';
         }, 2000);
     } catch (err) {
-        if (editorMode === 'template') {
-            copyButtonText.textContent = 'Erro ao copiar';
-        } else {
-            copyButtonText.textContent = 'Erro ao copiar';
-        }
+        copyButtonText.textContent = 'Erro ao copiar';
         console.error('Falha ao copiar texto: ', err);
     }
 }
@@ -262,7 +259,9 @@ function clearEditor() {
  */
 function saveBlankEditorAsTemplate() {
     if (!editorContent || !editorContent.textContent.trim()) {
-        alert('Não é possível salvar um template vazio.');
+        if (window.showAppNotification) {
+            window.showAppNotification('Não é possível salvar um template vazio.', 'error');
+        }
         return;
     }
 
@@ -297,14 +296,13 @@ function saveBlankEditorAsTemplate() {
     }
 
     // Atualiza renderizações
-    if (window.renderSidebarTemplates) {
-        window.renderSidebarTemplates();
-    }
     if (window.renderDashboard) {
         window.renderDashboard();
     }
 
-    alert('Template salvo com sucesso!');
+    if (window.showAppNotification) {
+        window.showAppNotification('Template salvo com sucesso!', 'success');
+    }
 }
 
 // ========================================
