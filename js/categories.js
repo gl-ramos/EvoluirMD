@@ -31,6 +31,10 @@ let lastFocusedElementBeforeCategoryModal = null;
 function createCategory(name, color) {
     const id = generateCategoryId(name);
     const now = Date.now();
+
+    if (!id) {
+        throw new Error('Nome inválido para categoria');
+    }
     
     if (window.categories[id]) {
         throw new Error('Uma categoria com este nome já existe');
@@ -60,6 +64,9 @@ function updateCategory(id, name, color) {
     }
     
     const newId = generateCategoryId(name);
+    if (!newId) {
+        throw new Error('Nome inválido para categoria');
+    }
     
     // Se o ID mudou, precisamos mover a categoria
     if (newId !== id) {
@@ -197,6 +204,10 @@ function validateCategoryData(name, color) {
     
     if (name && name.trim().length > 50) {
         errors.push('Nome deve ter no máximo 50 caracteres');
+    }
+
+    if (name && !generateCategoryId(name)) {
+        errors.push('Nome da categoria deve conter letras ou números');
     }
     
     if (!color || !color.match(/^#[0-9A-Fa-f]{6}$/)) {
