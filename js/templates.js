@@ -144,7 +144,14 @@ function createTemplateCard(key, template, isRecent = false) {
     const abbreviatedCategoryName = abbreviateText(categoryName, 12);
     
     return `
-        <div class="template-card" data-key="${safeKey}" style="--category-color: ${categoryColor}; --category-color-dark: ${categoryColorDark};">
+        <div
+            class="template-card"
+            data-key="${safeKey}"
+            style="--category-color: ${categoryColor}; --category-color-dark: ${categoryColorDark};"
+            role="button"
+            tabindex="0"
+            aria-label="Abrir template ${escapeHtml(template.title)}"
+        >
             <div class="template-card-header">
                 <div class="template-card-top-row">
                     <div class="template-card-title-section">
@@ -171,10 +178,10 @@ function createTemplateCard(key, template, isRecent = false) {
                 </div>
                 
                 <div class="template-card-actions">
-                    <button class="template-card-action" data-action="use" data-key="${safeKey}" title="Usar este template">
+                    <button class="template-card-action" data-action="use" data-key="${safeKey}" title="Usar este template" aria-label="Usar template ${escapeHtml(template.title)}">
                         ▶️ Usar
                     </button>
-                    <button class="template-card-action secondary" data-action="edit" data-key="${safeKey}" title="Editar template">
+                    <button class="template-card-action secondary" data-action="edit" data-key="${safeKey}" title="Editar template" aria-label="Editar template ${escapeHtml(template.title)}">
                         ✏️ Editar
                     </button>
                     <button 
@@ -182,6 +189,8 @@ function createTemplateCard(key, template, isRecent = false) {
                         data-action="favorite"
                         data-key="${safeKey}"
                         title="${isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}"
+                        aria-label="${isFavorite ? 'Remover template dos favoritos' : 'Adicionar template aos favoritos'}"
+                        aria-pressed="${isFavorite ? 'true' : 'false'}"
                     >
                         ${isFavorite ? '★' : '☆'}
                     </button>
@@ -230,6 +239,16 @@ function addCardEventListeners(container) {
             if (key && window.useTemplate) {
                 window.useTemplate(key);
             }
+        });
+
+        card.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+
+            const key = card.dataset.key;
+            if (!key || !window.useTemplate) return;
+
+            e.preventDefault();
+            window.useTemplate(key);
         });
     });
 }
