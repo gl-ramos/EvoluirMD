@@ -16,7 +16,6 @@ const templateModal = document.getElementById('template-modal');
 const templateForm = document.getElementById('template-form');
 const createNewTemplateBtn = document.getElementById('create-new-template-btn');
 const cancelTemplateBtn = document.getElementById('cancel-template-btn');
-const insertTemplatePlaceholderBtn = document.getElementById('insert-template-placeholder-btn');
 let lastFocusedElementBeforeTemplateModal = null;
 
 // ========================================
@@ -755,25 +754,59 @@ function filterTemplates(query = '', categoryId = '') {
 // ========================================
 
 /**
- * Configura os event listeners de templates
+ * Configura auto-fechamento de placeholders [[campo]] e escape com TAB
  */
-function insertTemplatePlaceholderAtCursor() {
+function setupTemplateContentInputEnhancements() {
     const contentInput = document.getElementById('template-content-input');
-    if (!contentInput) return;
+    if (!contentInput || contentInput.dataset.placeholderEnhancements === 'true') return;
 
-    const insertion = '[[campo]]';
-    const cursorStart = contentInput.selectionStart ?? contentInput.value.length;
-    const cursorEnd = contentInput.selectionEnd ?? contentInput.value.length;
+    contentInput.addEventListener('input', (e) => {
+        // Ao digitar "[[", fecha automaticamente com "]]" e mantém cursor no meio
+        if (e.inputType !== 'insertText' || e.data !== '[') return;
 
-    contentInput.value = `${contentInput.value.slice(0, cursorStart)}${insertion}${contentInput.value.slice(cursorEnd)}`;
-    contentInput.focus();
+        const cursorPos = contentInput.selectionStart ?? 0;
+        const value = contentInput.value;
 
-    // Posiciona cursor sobre "campo" para edição imediata
-    const fieldStart = cursorStart + 2;
-    const fieldEnd = cursorStart + insertion.length - 2;
-    contentInput.setSelectionRange(fieldStart, fieldEnd);
+        const justTypedOpening = value.slice(cursorPos - 2, cursorPos) === '[[';
+        const alreadyClosed = value.slice(cursorPos, cursorPos + 2) === ']]';
+
+        if (!justTypedOpening || alreadyClosed) return;
+
+        contentInput.value = `${value.slice(0, cursorPos)}]]${value.slice(cursorPos)}`;
+        contentInput.setSelectionRange(cursorPos, cursorPos);
+    });
+
+    contentInput.addEventListener('keydown', (e) => {
+        // TAB dentro de [[...]] escapa para depois do placeholder
+        if (e.key !== 'Tab' || e.shiftKey) return;
+
+        const start = contentInput.selectionStart ?? 0;
+        const end = contentInput.selectionEnd ?? 0;
+        if (start !== end) return;
+
+        const value = contentInput.value;
+        const openIndex = value.lastIndexOf('[[', start - 1);
+        if (openIndex === -1) return;
+
+        const closeIndex = value.indexOf(']]', openIndex + 2);
+        if (closeIndex === -1) return;
+
+        const cursorInsidePlaceholder = start >= openIndex + 2 && start <= closeIndex;
+        if (!cursorInsidePlaceholder) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const nextPos = closeIndex + 2;
+        contentInput.setSelectionRange(nextPos, nextPos);
+    });
+
+    contentInput.dataset.placeholderEnhancements = 'true';
 }
 
+/**
+ * Configura os event listeners de templates
+ */
 function setupTemplatesListeners() {
     // Event listeners para botões de templates
     if (createNewTemplateBtn) {
@@ -783,14 +816,12 @@ function setupTemplatesListeners() {
     if (cancelTemplateBtn) {
         cancelTemplateBtn.addEventListener('click', closeTemplateModal);
     }
-
-    if (insertTemplatePlaceholderBtn) {
-        insertTemplatePlaceholderBtn.addEventListener('click', insertTemplatePlaceholderAtCursor);
-    }
     
     if (templateForm) {
         templateForm.addEventListener('submit', handleSaveTemplate);
     }
+
+    setupTemplateContentInputEnhancements();
     
     // Inicializa busca
     initializeSearch();
