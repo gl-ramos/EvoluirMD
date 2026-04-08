@@ -104,6 +104,13 @@
                 <span>Snippets</span>
                 <span id="header-snippet-count" aria-live="polite" class="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-700 text-gray-200">0</span>
             </a>
+
+            <div class="mt-5 pt-4 border-t border-gray-700/60 px-2 space-y-2">
+                <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Dados</h2>
+                <button id="export-data-btn" type="button" class="w-full text-left px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700/40 hover:bg-gray-700/70 rounded-md transition">Exportar JSON</button>
+                <button id="import-data-btn" type="button" class="w-full text-left px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700/40 hover:bg-gray-700/70 rounded-md transition">Importar JSON</button>
+                <input id="import-data-input" type="file" accept="application/json,.json" class="hidden">
+            </div>
         </div>
     </aside>
 
