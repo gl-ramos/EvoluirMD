@@ -26,9 +26,12 @@ const clearSearchBtn = document.getElementById('clear-search');
 const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
 const appSidebar = document.getElementById('app-sidebar');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
+const onboardingHint = document.getElementById('onboarding-hint');
+const dismissOnboardingHintBtn = document.getElementById('dismiss-onboarding-hint');
 
 function setupNavigationListeners() {
     setupSidebarListeners();
+    setupOnboardingHint();
 
     // Link para gerenciamento de templates
     if (dashboardLink) {
@@ -338,6 +341,20 @@ function updateSnippetCounter() {
     const snippetCount = window.snippets ? Object.keys(window.snippets).length : 0;
     // Note: header-snippet-count element doesn't exist in HTML yet
     // Future enhancement: Add snippet counter to header if needed
+}
+
+function setupOnboardingHint() {
+    if (!onboardingHint || !dismissOnboardingHintBtn) return;
+
+    const dismissed = localStorage.getItem('evoluirMD_onboarding_hint_dismissed') === 'true';
+    if (!dismissed) {
+        onboardingHint.classList.remove('hidden');
+    }
+
+    dismissOnboardingHintBtn.addEventListener('click', () => {
+        onboardingHint.classList.add('hidden');
+        localStorage.setItem('evoluirMD_onboarding_hint_dismissed', 'true');
+    });
 }
 
 /**
