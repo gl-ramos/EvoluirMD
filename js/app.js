@@ -15,6 +15,7 @@
 import './config.js';
 
 // Importa todos os módulos da aplicação
+import './theme.js';
 import './stateManager.js';
 import './storage.js';
 import './editor.js';
