@@ -53,7 +53,7 @@ function renderSnippetsList() {
         snippetsListContainer.innerHTML = `
             <div class="empty-state-card">
                 <p>Você ainda não criou nenhum snippet.</p>
-                <p class="text-sm text-gray-400">Use snippets para agilizar frases repetitivas no editor.</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Use snippets para agilizar frases repetitivas no editor.</p>
                 <div class="empty-state-actions">
                     <button id="create-first-snippet-btn" type="button" class="bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Criar Primeiro Snippet</button>
                 </div>
@@ -76,16 +76,16 @@ function renderSnippetsList() {
         const snippet = window.snippets[key];
 
         const snippetEl = document.createElement('div');
-        snippetEl.className = 'bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-700/50';
+        snippetEl.className = 'bg-gray-50 dark:bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-200 dark:border-gray-700/50';
 
         const infoDiv = document.createElement('div');
 
         const keyTitle = document.createElement('h3');
-        keyTitle.className = 'font-bold text-lg text-gray-200';
+        keyTitle.className = 'font-bold text-lg text-gray-800 dark:text-gray-200';
         keyTitle.textContent = key;
 
         const descriptionP = document.createElement('p');
-        descriptionP.className = 'text-gray-400';
+        descriptionP.className = 'text-gray-600 dark:text-gray-400';
         descriptionP.textContent = snippet.description;
 
         infoDiv.appendChild(keyTitle);
@@ -95,12 +95,12 @@ function renderSnippetsList() {
         actionsDiv.className = 'space-x-2';
 
         const editBtn = document.createElement('button');
-        editBtn.className = 'edit-snippet-btn text-blue-400 hover:text-blue-300';
+        editBtn.className = 'edit-snippet-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300';
         editBtn.dataset.key = key;
         editBtn.textContent = 'Editar';
 
         const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-snippet-btn text-red-400 hover:text-red-300';
+        deleteBtn.className = 'delete-snippet-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300';
         deleteBtn.dataset.key = key;
         deleteBtn.textContent = 'Excluir';
 

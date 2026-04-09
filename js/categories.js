@@ -285,23 +285,23 @@ function renderCategoriesManagementList() {
         const safeColor = normalizeHexColor(category.color) || '#6B7280';
 
         const row = document.createElement('div');
-        row.className = 'bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-700/50';
+        row.className = 'bg-gray-50 dark:bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-200 dark:border-gray-700/50';
 
         const left = document.createElement('div');
         left.className = 'flex items-center space-x-3';
 
         const colorDot = document.createElement('div');
-        colorDot.className = 'w-4 h-4 rounded-full border border-gray-600';
+        colorDot.className = 'w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600';
         colorDot.style.backgroundColor = safeColor;
 
         const info = document.createElement('div');
 
         const title = document.createElement('h3');
-        title.className = 'font-bold text-lg text-gray-200';
+        title.className = 'font-bold text-lg text-gray-800 dark:text-gray-200';
         title.textContent = String(category.name || 'Sem nome');
 
         const meta = document.createElement('p');
-        meta.className = 'text-sm text-gray-400';
+        meta.className = 'text-sm text-gray-600 dark:text-gray-400';
         meta.textContent = `${usageCount} template${usageCount !== 1 ? 's' : ''}${category.isDefault ? ' • Categoria padrão' : ''}`;
 
         info.appendChild(title);
@@ -314,14 +314,14 @@ function renderCategoriesManagementList() {
 
         const editBtn = document.createElement('button');
         editBtn.dataset.id = String(category.id || '');
-        editBtn.className = 'edit-category-btn text-blue-400 hover:text-blue-300';
+        editBtn.className = 'edit-category-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300';
         editBtn.textContent = 'Editar';
         actions.appendChild(editBtn);
 
         if (canDelete) {
             const deleteBtn = document.createElement('button');
             deleteBtn.dataset.id = String(category.id || '');
-            deleteBtn.className = 'delete-category-btn text-red-400 hover:text-red-300';
+            deleteBtn.className = 'delete-category-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300';
             deleteBtn.textContent = 'Excluir';
             actions.appendChild(deleteBtn);
         }

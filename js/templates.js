@@ -474,11 +474,11 @@ function renderTemplatesManagementList() {
     for (const key in window.templates) {
         const template = window.templates[key];
         const el = document.createElement('div');
-        el.className = 'bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-700/50';
+        el.className = 'bg-gray-50 dark:bg-[#2D2D2D] p-4 rounded-lg flex justify-between items-center border border-gray-200 dark:border-gray-700/50';
 
         const infoDiv = document.createElement('div');
         const titleEl = document.createElement('h3');
-        titleEl.className = 'font-bold text-lg text-gray-200';
+        titleEl.className = 'font-bold text-lg text-gray-800 dark:text-gray-200';
         titleEl.textContent = template.title;
         infoDiv.appendChild(titleEl);
 
@@ -486,12 +486,12 @@ function renderTemplatesManagementList() {
         actionsDiv.className = 'space-x-2';
 
         const editBtn = document.createElement('button');
-        editBtn.className = 'edit-template-btn text-blue-400 hover:text-blue-300';
+        editBtn.className = 'edit-template-btn text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300';
         editBtn.dataset.key = key;
         editBtn.textContent = 'Editar';
 
         const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-template-btn text-red-400 hover:text-red-300';
+        deleteBtn.className = 'delete-template-btn text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300';
         deleteBtn.dataset.key = key;
         deleteBtn.textContent = 'Excluir';
 

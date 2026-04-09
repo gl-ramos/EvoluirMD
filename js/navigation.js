@@ -347,7 +347,7 @@ function renderQuickTemplates() {
     quickTemplatesList.innerHTML = '';
 
     if (!window.templates || Object.keys(window.templates).length === 0) {
-        quickTemplatesList.innerHTML = '<div class="text-xs text-gray-500 px-2 py-1">Nenhum template disponível</div>';
+        quickTemplatesList.innerHTML = '<div class="text-xs text-gray-500 dark:text-gray-400 px-2 py-1">Nenhum template disponível</div>';
         return;
     }
 
